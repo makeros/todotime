@@ -1,16 +1,10 @@
 const { app, Tray, Menu, BrowserWindow } = require('electron')
 const getHours = require('./src/get-hours')
 const store = require('./src/store')
+const getTextForTray = require('./get-text-for-tray')
 const { ipcMain } = require('electron')
 const logger = {
   log: console.log
-}
-
-const REFRESH_TIME_INTERVAL = {
-  '30s': () => 30 * 1000,
-  '5m': () => 5 * 60 * 1000,
-  '15m': () => 15 * 60 * 1000,
-  '1h': () => 60 * 60 * 1000
 }
 
 let tray, mainWindow, refreshHoursLoopHandler
@@ -27,19 +21,6 @@ app.on('window-all-closed', function () {
 })
 
 ipcMain.on('user-settings-save', onUserSettingsSave)
-
-function getTextForTray (hours = NaN) {
-  if (Number.isNaN(hours)) {
-    return '...'
-  }
-  if (hours < 1) {
-    return (hours * 60) + 'm'
-  }
-
-  const restMinutes = (hours % 1) * 60
-  if (restMinutes === 0) return hours + 'h'
-  return Math.floor(hours) + ':' + restMinutes.toFixed(0)
-}
 
 function createTray (app) {
   return async function () {

@@ -2,15 +2,21 @@
   "name": "Timedoist",
   "productName": "Timedoist",
   "description": "Unofficial extension for todoist the handle task timeboxing.",
-  "keywords": ["todoist", "timeboxing", "tasks"],
+  "keywords": [
+    "todoist",
+    "timeboxing",
+    "tasks"
+  ],
   "main": "./main.js",
   "version": "0.0.1",
   "author": "arek czogala <mail@arekczogala.pl>",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "test:unit": "jest ./src"
   },
   "dependencies": {},
   "devDependencies": {
-    "electron": "5.0.0-beta.7"
+    "electron": "5.0.0-beta.7",
+    "jest": "^25.1.0"
   }
 }
