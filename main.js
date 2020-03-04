@@ -1,7 +1,7 @@
 const { app, Tray, Menu, BrowserWindow } = require('electron')
 const getHours = require('./src/get-hours')
 const store = require('./src/store')
-const getTextForTray = require('./get-text-for-tray')
+const getTextForTray = require('./src/get-text-for-tray')
 const { ipcMain } = require('electron')
 const logger = {
   log: console.log
@@ -66,7 +66,7 @@ function createWindow () {
     }
   })
 
-  mainWindow.loadFile('index.html')
+  mainWindow.loadFile('./frontend/index.html')
   // mainWindow.webContents.openDevTools()
 
   mainWindow.on('closed', function () {
