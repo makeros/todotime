@@ -1,16 +1,23 @@
-module.exports = function getTextForTray (hours = NaN) {
-  if (Number.isNaN(hours)) {
+module.exports = function getTextForTray (cb, value = NaN) {
+  if (Number.isNaN(value)) {
     return '...'
   }
+
+  return cb(value)
+}
+
+
+function textFromHours (hours) {
   if (hours < 1) {
     return (hours * 60) + 'm'
   }
 
-  const restMinutes = (hours % 1) * 60
+  const restMinutes = Math.floor((hours % 1) * 60)
   if (restMinutes === 0) {
     return `${hours}h`
   } else if (restMinutes < 10) {
-    return `${Math.floor(hours)}:0${Math.ceil(restMinutes)}h`
+    console.log(restMinutes)
+    return `${Math.floor(hours)}:0${restMinutes}`
   }
   return Math.floor(hours) + ':' + restMinutes.toFixed(0)
 }
