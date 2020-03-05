@@ -1,7 +1,8 @@
 const { app, Tray, Menu, BrowserWindow } = require('electron')
-const getHours = require('./src/get-hours')
+const getTime = require('./src/get-time-from-tasks')
 const store = require('./src/store')
 const getTextForTray = require('./src/get-text-for-tray')
+const getTextFromMinutes = require('./src/get-text-from-minutes')
 const { ipcMain } = require('electron')
 const logger = {
   log: console.log
@@ -31,16 +32,16 @@ function createTray (app) {
     tray.setToolTip('Timedoist')
     tray.setContextMenu(contextMenu)
 
-    const hours = await fetchHours()
-    logger.log('refreshHours for the first time ', hours)
-    tray.setTitle(getTextForTray(hours))
+    const minutes = await fetchTasksTime()
+    logger.log('refreshHours for the first time ', minutes)
+    tray.setTitle(getTextForTray(getTextFromMinutes, minutes))
 
     const refreshHours = (timeInterval) => {
       return setTimeout(async () => {
         try {
-          const hours = await fetchHours()
-          logger.log('refreshHours', hours)
-          tray.setTitle(getTextForTray(hours))
+          const minutes = await fetchTasksTime()
+          logger.log('refreshHours', minutes)
+          tray.setTitle(getTextForTray(getTextFromMinutes, minutes))
         } catch (e) {
           // TODO run logger
           logger.log(e)
@@ -74,9 +75,9 @@ function createWindow () {
   })
 }
 
-async function fetchHours () {
+async function fetchTasksTime () {
   try {
-    const hours = await getHours({
+    const hours = await getTime({
       authKey: store.get('apiKey'),
       labelPrefix: 't-'
     })
@@ -104,8 +105,8 @@ function getContextMenu (app, tray, menu) {
       label: 'Check now!',
       type: 'normal',
       async click () {
-        const hours = await fetchHours()
-        tray.setTitle(getTextForTray(hours))
+        const minutes = await fetchTasksTime()
+        tray.setTitle(getTextForTray(getTextFromMinutes, minutes))
       }
     },
     {

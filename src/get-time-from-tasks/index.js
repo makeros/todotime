@@ -17,7 +17,7 @@ module.exports = function getHours ({ authKey, labelPrefix }) {
         .map(attachTimeLabelsToTask(labels))
         .reduce(calculateTimeInMinutes, 0)
     })
-    .then(getHoursFromMinutes)
+    // .then(getHoursFromMinutes)
 }
 
 function getTodaysTasksFilter () {
@@ -42,9 +42,9 @@ function getValueFromLabelName (name, labelPrefix) {
   return name.split(labelPrefix)[1]
 }
 
-function getHoursFromMinutes (minutes) {
-  return (minutes / 60)
-}
+// function getHoursFromMinutes (minutes) {
+//   return (minutes / 60)
+// }
 
 function getCall (url, { authKey }) {
   return () => new Promise((resolve, reject) => {
