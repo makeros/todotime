@@ -5,7 +5,9 @@ const getTextForTray = require('./src/get-text-for-tray')
 const getTextFromMinutes = require('./src/get-text-from-minutes')
 const { ipcMain } = require('electron')
 const logger = {
-  log: console.log
+  log: function (...args) {
+    console.log(new Date() + ': ', ...args)
+  }
 }
 
 const getRefreshTime = require('./src/get-refresh-time')({ logger, fetchTasksTime })
