@@ -8,7 +8,12 @@ const logger = {
   log: console.log
 }
 
-let tray, mainWindow, refreshHoursLoopHandler
+const getRefreshTime = require('./src/get-refresh-time')({ logger, fetchTasksTime })
+
+let tray, mainWindow, refreshTimeLoopHandler
+const timers = {
+  refreshTimeLoopHandler: null
+}
 
 app.on('ready', function () {
   createTray(app)()
@@ -26,39 +31,27 @@ ipcMain.on('user-settings-save', onUserSettingsSave)
 function createTray (app) {
   return async function () {
     tray = new Tray('./assets/todoist3.png')
-    const contextMenu = getContextMenu(app, tray, Menu)
-
-    tray.setTitle('-')
     tray.setToolTip('Timedoist')
-    tray.setContextMenu(contextMenu)
+    tray.setTitle('-')
 
-    const minutes = await fetchTasksTime()
-    logger.log('refreshHours for the first time ', minutes)
-    tray.setTitle(getTextForTray(getTextFromMinutes, minutes))
+    const refreshTime = getRefreshTime((value) => {
+      tray.setTitle(getTextForTray(getTextFromMinutes, value))
+    }, timers)
 
-    const refreshHours = (timeInterval) => {
-      return setTimeout(async () => {
-        try {
-          const minutes = await fetchTasksTime()
-          logger.log('refreshHours', minutes)
-          tray.setTitle(getTextForTray(getTextFromMinutes, minutes))
-        } catch (e) {
-          // TODO run logger
-          logger.log(e)
-        }
-        refreshHoursLoopHandler = refreshHours(timeInterval)
-      }, timeInterval)
-    }
-    refreshHoursLoopHandler = refreshHours(store.get('refreshTimeInterval'))
+    tray.setContextMenu(getContextMenu(app, tray, Menu, {
+      checkNow: () => refreshTime(store.get('refreshTimeInterval'))
+    }))
+
+    refreshTime(store.get('refreshTimeInterval'))
 
     store.on('changed:refreshTimeInterval', (value) => {
-      clearInterval(refreshHoursLoopHandler)
-      refreshHoursLoopHandler = refreshHours(value)
+      refreshTime(value)
     })
   }
 }
 
-function createWindow () {
+
+function createPreferencesWindow () {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -84,6 +77,7 @@ async function fetchTasksTime () {
     return hours
   } catch (e) {
     console.error('Cannot fetch hours.')
+    throw e
   }
 }
 
@@ -99,21 +93,20 @@ function savePayloadToStore (payload) {
     })
 }
 
-function getContextMenu (app, tray, menu) {
+function getContextMenu (app, tray, menu, actions) {
   return menu.buildFromTemplate([
     {
       label: 'Check now!',
       type: 'normal',
       async click () {
-        const minutes = await fetchTasksTime()
-        tray.setTitle(getTextForTray(getTextFromMinutes, minutes))
+        actions.checkNow()
       }
     },
     {
       label: 'Preferences',
       type: 'normal',
       click () {
-        createWindow()
+        createPreferencesWindow()
       }
     },
     { type: 'separator' },
