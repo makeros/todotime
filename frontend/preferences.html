@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <script src="./preferences.js"></script>
+    <script type="text/javascript">
+    /* globals alert */
+    const renderer = require('./../renderer.js')
+
+    // var storedState = localStorage.getItem('elm-todo-save');
+    // var startingState = storedState ? JSON.parse(storedState) : null;
+
+    // app.ports.setStorage.subscribe(function(state) {
+        // localStorage.setItem('elm-todo-save', JSON.stringify(state));
+    // });
+
+    renderer.getUserSettings(function (userSettings) {
+      console.log('settings', userSettings)
+      const app = Elm.Preferences.init({ flags: userSettings });
+    })
+
+    // renderer.userSettingsSave({
+    //   apiKey: ''
+    // }, function () {
+    //   alert('api key saved!')
+    // })
+  </script>
+  </body>
+</html>

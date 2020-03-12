@@ -28,7 +28,6 @@ app.on('window-all-closed', function () {
   }
 })
 
-ipcMain.on('user-settings-save', onUserSettingsSave)
 
 function createTray (app) {
   return async function () {
@@ -62,7 +61,7 @@ function createPreferencesWindow () {
     }
   })
 
-  mainWindow.loadFile('./frontend/index.html')
+  mainWindow.loadFile('./frontend/preferences.html')
   // mainWindow.webContents.openDevTools()
 
   mainWindow.on('closed', function () {
@@ -83,9 +82,18 @@ async function fetchTasksTime () {
   }
 }
 
+ipcMain.on('user-settings:save', onUserSettingsSave)
+ipcMain.on('user-settings:get', onUserSettingsGet)
+
 function onUserSettingsSave (event, payload) {
   savePayloadToStore(payload)
-  event.reply('user-settings-saved')
+  event.reply('user-settings:save:reply')
+}
+
+function onUserSettingsGet (event) {
+  event.returnValue = { ...store.data }
+  console.log('asdasdadasd', event.returnValue)
+  event.reply('user-settings:get:reply')
 }
 
 function savePayloadToStore (payload) {

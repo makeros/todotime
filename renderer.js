@@ -4,9 +4,16 @@
 const { ipcRenderer } = require('electron')
 
 module.exports = {
-  userSettingsSave: function (payload, cb) {
+  saveUserSettings: function (cb, payload) {
     // validate the payload before saving it to store
-    ipcRenderer.send('user-settings-save', payload)
-    ipcRenderer.once('user-settings-saved', cb)
+    ipcRenderer.send('user-settings:save', payload)
+    ipcRenderer.once('user-settings:save:reply', cb)
+  },
+  getUserSettings: function (cb) {
+    ipcRenderer.send('user-settings:get')
+    ipcRenderer.once('user-settings:get:reply', function (event, payload) {
+      console.log(payload)
+      cb(payload)
+    })
   }
 }
