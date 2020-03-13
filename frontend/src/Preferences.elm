@@ -2,10 +2,12 @@ port module Preferences exposing (..)
 
 import Browser
 import Browser.Dom as Dom
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
-import Html.Keyed as Keyed
+import Css exposing (..)
+import Css.Global exposing (body, global)
+import Html
+import Html.Styled exposing (..)
+import Html.Styled.Attributes exposing (value)
+import Html.Styled.Events exposing (onClick)
 import Json.Decode as Json
 import Task
 
@@ -14,7 +16,7 @@ main : Program (Maybe Model) Model Msg
 main =
     Browser.document
         { init = init
-        , view = \model -> { title = "Timedoist • Preferences", body = [ view model ] }
+        , view = view
         , update = update
         , subscriptions = \_ -> Sub.none
         }
@@ -66,12 +68,52 @@ update msg model =
 -- View
 
 
-view : Model -> Html Msg
+theme : { secondary : Color, primary : Color }
+theme =
+    { primary = hex "010101"
+    , secondary = hex "f1f1f1"
+    }
+
+
+btnSave : List (Attribute msg) -> List (Html msg) -> Html msg
+btnSave =
+    styled button
+        [ margin (px 12)
+        , padding (px 8)
+        , backgroundColor theme.primary
+        , border (px 0)
+        , color theme.secondary
+        ]
+
+
+inputField : List (Attribute msg) -> List (Html msg) -> Html msg
+inputField =
+    styled input
+        [ padding (px 8)
+        , width (pct 100)
+        ]
+
+
+view : Model -> Browser.Document Msg
 view model =
-    div
-        []
+    { title = "Timedoist • Preferences"
+    , body =
+        [ toUnstyled (global [ body [ margin (px 0) ] ])
+        , toUnstyled (viewBody model)
+        ]
+    }
+
+
+viewBody : Model -> Html Msg
+viewBody model =
+    div []
         [ h1 [] [ text "test" ]
-        , section
-            [ class "todoapp" ]
-            [ text "test app" ]
+        , section []
+            [ div []
+                [ inputField [ value model.apiKey ] []
+                ]
+            , div []
+                [ btnSave [] [ text "Save" ]
+                ]
+            ]
         ]
