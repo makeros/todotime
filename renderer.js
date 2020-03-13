@@ -12,7 +12,7 @@ module.exports = {
   getUserSettings: function (cb) {
     ipcRenderer.send('user-settings:get')
     ipcRenderer.once('user-settings:get:reply', function (event, payload) {
-      console.log(payload)
+      console.log('------', arguments)
       cb(payload)
     })
   }
