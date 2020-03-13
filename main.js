@@ -12,7 +12,7 @@ const logger = {
 
 const getRefreshTime = require('./src/get-refresh-time')({ logger, fetchTasksTime })
 
-let tray, mainWindow, refreshTimeLoopHandler
+let tray, preferencesWindow = null, refreshTimeLoopHandler
 const timers = {
   refreshTimeLoopHandler: null
 }
@@ -53,7 +53,10 @@ function createTray (app) {
 
 
 function createPreferencesWindow () {
-  mainWindow = new BrowserWindow({
+  if (preferencesWindow !== null) {
+    return
+  }
+  preferencesWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -61,11 +64,10 @@ function createPreferencesWindow () {
     }
   })
 
-  mainWindow.loadFile('./frontend/preferences.html')
-  // mainWindow.webContents.openDevTools()
+  preferencesWindow.loadFile('./frontend/preferences.html')
 
-  mainWindow.on('closed', function () {
-    mainWindow = null
+  preferencesWindow.on('closed', function () {
+    preferencesWindow = null
   })
 }
 
@@ -91,9 +93,7 @@ function onUserSettingsSave (event, payload) {
 }
 
 function onUserSettingsGet (event) {
-  event.returnValue = { ...store.data }
-  console.log('asdasdadasd', event.returnValue)
-  event.reply('user-settings:get:reply')
+  event.reply('user-settings:get:reply', { ...store.data })
 }
 
 function savePayloadToStore (payload) {
