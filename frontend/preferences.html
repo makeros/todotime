@@ -2,30 +2,31 @@
 <html>
   <head>
     <meta charset="UTF-8">
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="../assets/uikit-3.3.6/css/uikit.min.css" />
+
+    <!-- UIkit JS -->
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.3.6/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.3.6/dist/js/uikit-icons.min.js"></script>
   </head>
   <body>
+    <div id="elm"></div>
     <script src="./preferences.js"></script>
     <script type="text/javascript">
-    /* globals alert */
-    const renderer = require('./../renderer.js')
+      const renderer = require('./../renderer.js')
 
-    // var storedState = localStorage.getItem('elm-todo-save');
-    // var startingState = storedState ? JSON.parse(storedState) : null;
+      renderer.getUserSettings(function (userSettings) {
+        const app = Elm.Preferences.init({
+          flags: userSettings,
+        });
 
-    // app.ports.setStorage.subscribe(function(state) {
-        // localStorage.setItem('elm-todo-save', JSON.stringify(state));
-    // });
+        app.ports.userSettingsSave.subscribe(function(settings) {
+          renderer.userSettingsSave(function () {
+            alert('api key saved!')
+          }, settings)
+        });
+      })
 
-    renderer.getUserSettings(function (userSettings) {
-      console.log('settings', userSettings)
-      const app = Elm.Preferences.init({ flags: userSettings });
-    })
-
-    // renderer.userSettingsSave({
-    //   apiKey: ''
-    // }, function () {
-    //   alert('api key saved!')
-    // })
-  </script>
+    </script>
   </body>
 </html>
