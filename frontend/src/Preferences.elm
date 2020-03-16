@@ -1,18 +1,29 @@
 port module Preferences exposing (..)
 
+-- import Html.Styled.Attributes exposing (value)
+-- import Html.Styled.Events exposing (onClick, onInput)
+
 import Browser
 import Browser.Dom as Dom
 import Css exposing (..)
 import Css.Global exposing (body, global)
-import Html
-import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (value)
-import Html.Styled.Events exposing (onClick)
-import Json.Decode as Json
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+import Html.Styled exposing (toUnstyled)
+import Json.Decode as JD
+import Json.Encode as JE
 import Task
 
 
-main : Program (Maybe Model) Model Msg
+
+-- import UI
+
+
+port userSettingsSave : PreferencesModel -> Cmd msg
+
+
+main : Program (Maybe PreferencesModel) Model Msg
 main =
     Browser.document
         { init = init
@@ -22,12 +33,11 @@ main =
         }
 
 
-port saveUserSettings : Model -> Cmd msg
-
-
-init : Maybe Model -> ( Model, Cmd Msg )
-init maybeModel =
-    ( Maybe.withDefault emptyModel maybeModel
+init : Maybe PreferencesModel -> ( Model, Cmd Msg )
+init maybePreferencesModel =
+    ( { preferences = Maybe.withDefault emptyPreferencesModel maybePreferencesModel
+      , saving = False
+      }
     , Cmd.none
     )
 
@@ -37,13 +47,19 @@ init maybeModel =
 
 
 type alias Model =
-    { apiKey : String
-    , refreshTimeInterval : Int
+    { preferences : PreferencesModel
+    , saving : Bool
     }
 
 
-emptyModel : Model
-emptyModel =
+type alias PreferencesModel =
+    { apiKey : String
+    , refreshTimeInterval : Float
+    }
+
+
+emptyPreferencesModel : PreferencesModel
+emptyPreferencesModel =
     { apiKey = ""
     , refreshTimeInterval = 0
     }
@@ -55,43 +71,39 @@ emptyModel =
 
 type Msg
     = NoOp
+    | OnApiKeyInputChange String
+    | OnRefreshIntervalInputChange String
+    | OnPreferencesSave
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        OnPreferencesSave ->
+            ( model, userSettingsSave model.preferences )
+
+        OnApiKeyInputChange value ->
+            ( { model | preferences = updateApiKey model.preferences value }, Cmd.none )
+
+        OnRefreshIntervalInputChange value ->
+            ( { model | preferences = updateRefreshTimeInterval model.preferences value }, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
 
+updateApiKey : PreferencesModel -> String -> PreferencesModel
+updateApiKey model value =
+    { model | apiKey = value }
+
+
+updateRefreshTimeInterval : PreferencesModel -> String -> PreferencesModel
+updateRefreshTimeInterval model value =
+    { model | refreshTimeInterval = Maybe.withDefault 0 (String.toFloat value) * 60000 }
+
+
 
 -- View
-
-
-theme : { secondary : Color, primary : Color }
-theme =
-    { primary = hex "010101"
-    , secondary = hex "f1f1f1"
-    }
-
-
-btnSave : List (Attribute msg) -> List (Html msg) -> Html msg
-btnSave =
-    styled button
-        [ margin (px 12)
-        , padding (px 8)
-        , backgroundColor theme.primary
-        , border (px 0)
-        , color theme.secondary
-        ]
-
-
-inputField : List (Attribute msg) -> List (Html msg) -> Html msg
-inputField =
-    styled input
-        [ padding (px 8)
-        , width (pct 100)
-        ]
 
 
 view : Model -> Browser.Document Msg
@@ -99,21 +111,34 @@ view model =
     { title = "Timedoist • Preferences"
     , body =
         [ toUnstyled (global [ body [ margin (px 0) ] ])
-        , toUnstyled (viewBody model)
+        , viewBody model
         ]
     }
 
 
 viewBody : Model -> Html Msg
 viewBody model =
-    div []
+    div [ class "uk-margin" ]
         [ h1 [] [ text "test" ]
         , section []
-            [ div []
-                [ inputField [ value model.apiKey ] []
+            [ Html.form [ class "uk-form-horizontal uk-margin-large" ]
+                [ div [ class "uk-margin" ]
+                    [ label [ for "input-api-key", class "uk-form-label" ]
+                        [ text "Todoist API Key" ]
+                    , div
+                        [ class "uk-form-controls" ]
+                        [ input [ id "input-api-key", class "uk-input", type_ "text", onInput OnApiKeyInputChange, value model.preferences.apiKey ] []
+                        ]
+                    ]
+                , div [ class "uk-margin" ]
+                    [ label [ for "input-refresh-interval", class "uk-form-label" ] [ text "Task refresh time" ]
+                    , div [ class "uk-form-controls" ]
+                        [ input [ id "input-refresh-interval", class "uk-input", type_ "text", onInput OnRefreshIntervalInputChange, value (String.fromFloat (model.preferences.refreshTimeInterval / 60000)) ] []
+                        ]
+                    ]
                 ]
-            , div []
-                [ btnSave [] [ text "Save" ]
+            , div [ class "uk-margin" ]
+                [ button [ class "uk-button uk-button-primary", onClick OnPreferencesSave ] [ text "Save Preferences" ]
                 ]
             ]
         ]
