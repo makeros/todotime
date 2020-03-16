@@ -54,6 +54,7 @@ function createTray (app) {
 
 function createPreferencesWindow () {
   if (preferencesWindow !== null) {
+    preferencesWindow.focus()
     return
   }
   preferencesWindow = new BrowserWindow({
