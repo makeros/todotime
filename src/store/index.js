@@ -16,13 +16,24 @@ class Store extends EventEmitter {
   }
 
   set (key, val) {
-    this.data[key] = val
-    fs.writeFile(this.path, JSON.stringify(this.data), 'utf8', (err) => {
-      if (err) {
+    if (typeof key === "string") {
+      const newData = {...this.data, [key]: val}
+      try {
+        // with writeFile the content was when we did it in a loop - for many keys at once
+        fs.writeFileSync(this.path, JSON.stringify(newData), {encoding: 'utf8', flag: 'w+'})
+        this.data = newData
+        return this.emit('changed:' + key, val)
+      } catch (err) {
         throw err
       }
-      this.emit('changed:' + key, val)
-    })
+    }
+
+    if (typeof key === "object") {
+      const newData = {...this.data, ...key}
+      fs.writeFileSync(this.path, JSON.stringify(newData), {encoding: 'utf8', flag: 'w+'})
+      this.data = newData
+      return this.emit('changed-data', newData)
+    }
   }
 }
 
@@ -38,6 +49,7 @@ module.exports = new Store({
   configName: 'user-settings',
   defaults: {
     apiKey: '',
-    refreshTimeInterval: 1000 * 60 * 60
+    refreshTimeInterval: 1000 * 60 * 60,
+    todoistLabel: "t-<minutes>"
   }
 })

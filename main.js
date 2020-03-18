@@ -1,5 +1,5 @@
 const { app, Tray, Menu, BrowserWindow } = require('electron')
-const getTime = require('./src/get-time-from-tasks')
+const getTimeFromTasks = require('./src/get-time-from-tasks')
 const store = require('./src/store')
 const getTextForTray = require('./src/get-text-for-tray')
 const getTextFromMinutes = require('./src/get-text-from-minutes')
@@ -45,8 +45,11 @@ function createTray (app) {
 
     refreshTime(store.get('refreshTimeInterval'))
 
-    store.on('changed:refreshTimeInterval', (value) => {
-      refreshTime(value)
+    store.on('changed-data', (newData) => {
+      const newDataKeys = Object.keys(newData)
+      if (newDataKeys.includes('refreshTimeInterval') || newDataKeys.includes('apiKey') || newDataKeys.includes('todoistLabel')) {
+        refreshTime(store.get('refreshTimeInterval'))
+      }
     })
   }
 }
@@ -74,13 +77,14 @@ function createPreferencesWindow () {
 
 async function fetchTasksTime () {
   try {
-    const hours = await getTime({
+    const hours = await getTimeFromTasks({
       authKey: store.get('apiKey'),
-      labelPrefix: 't-'
+      labelPrefix: 't-',
+      todoistLabel: store.get('todoistLabel')
     })
     return hours
   } catch (e) {
-    console.error('Cannot fetch hours.')
+    console.error('Cannot fetch hours.', e)
     throw e
   }
 }
@@ -98,10 +102,7 @@ function onUserSettingsGet (event) {
 }
 
 function savePayloadToStore (payload) {
-  Object.entries(payload)
-    .forEach(entry => {
-      store.set(entry[0], entry[1])
-    })
+  store.set(payload)
 }
 
 function getContextMenu (app, tray, menu, actions) {
