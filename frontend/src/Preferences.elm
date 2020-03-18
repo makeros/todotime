@@ -3,6 +3,7 @@ port module Preferences exposing (..)
 -- import Html.Styled.Attributes exposing (value)
 -- import Html.Styled.Events exposing (onClick, onInput)
 
+import Array
 import Browser
 import Browser.Dom as Dom
 import Css exposing (..)
@@ -55,6 +56,7 @@ type alias Model =
 type alias PreferencesModel =
     { apiKey : String
     , refreshTimeInterval : Float
+    , todoistLabel : String
     }
 
 
@@ -62,6 +64,7 @@ emptyPreferencesModel : PreferencesModel
 emptyPreferencesModel =
     { apiKey = ""
     , refreshTimeInterval = 0
+    , todoistLabel = ""
     }
 
 
@@ -73,6 +76,8 @@ type Msg
     = NoOp
     | OnApiKeyInputChange String
     | OnRefreshIntervalInputChange String
+    | OnTodoistLabelPrefixInputChange String
+    | OnTodoistLabelSuffixInputChange String
     | OnPreferencesSave
 
 
@@ -88,6 +93,12 @@ update msg model =
         OnRefreshIntervalInputChange value ->
             ( { model | preferences = updateRefreshTimeInterval model.preferences value }, Cmd.none )
 
+        OnTodoistLabelPrefixInputChange value ->
+            ( { model | preferences = updateTodoistLabel model.preferences value 0 }, Cmd.none )
+
+        OnTodoistLabelSuffixInputChange value ->
+            ( { model | preferences = updateTodoistLabel model.preferences value 1 }, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -95,6 +106,11 @@ update msg model =
 updateApiKey : PreferencesModel -> String -> PreferencesModel
 updateApiKey model value =
     { model | apiKey = value }
+
+
+updateTodoistLabel : PreferencesModel -> String -> Int -> PreferencesModel
+updateTodoistLabel model value part =
+    { model | todoistLabel = String.join "<minutes>" (Array.toList (Array.set part value (Array.fromList (String.split "<minutes>" model.todoistLabel)))) }
 
 
 updateRefreshTimeInterval : PreferencesModel -> String -> PreferencesModel
@@ -136,9 +152,22 @@ viewBody model =
                         [ input [ id "input-refresh-interval", class "uk-input", type_ "text", onInput OnRefreshIntervalInputChange, value (String.fromFloat (model.preferences.refreshTimeInterval / 60000)) ] []
                         ]
                     ]
+                , div [ class "uk-margin" ]
+                    [ label [ for "input-todoist-label", class "uk-form-label" ] [ text "Todoist label" ]
+                    , viewTodolistLabel model.preferences.todoistLabel
+                    ]
                 ]
             , div [ class "uk-margin" ]
                 [ button [ class "uk-button uk-button-primary", onClick OnPreferencesSave ] [ text "Save Preferences" ]
                 ]
             ]
+        ]
+
+
+viewTodolistLabel : String -> Html Msg
+viewTodolistLabel label =
+    div [ class "uk-form-controls" ]
+        [ input [ id "input-todoist-label", class "uk-input", type_ "text", onInput OnTodoistLabelPrefixInputChange, value (Maybe.withDefault "" (Array.get 0 (Array.fromList (String.split "<minutes>" label)))) ] []
+        , text "<minutes>"
+        , input [ id "input-todoist-label", class "uk-input", type_ "text", onInput OnTodoistLabelSuffixInputChange, value (Maybe.withDefault "" (Array.get 1 (Array.fromList (String.split "<minutes>" label)))) ] []
         ]

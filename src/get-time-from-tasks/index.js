@@ -1,14 +1,19 @@
 const { get } = require('https')
+const LABEL_MINUTES = "<minutes>"
 
-module.exports = function getHours ({ authKey, labelPrefix }) {
+module.exports = function getHours ({ authKey, labelPrefix, todoistLabel }) {
   const getTasksCall = getCall(`https://api.todoist.com/rest/v1/tasks?filter=${getTodaysTasksFilter()}`, { authKey })
   const getLabelsCall = getCall('https://api.todoist.com/rest/v1/labels', { authKey })
+
+  const labelParts = todoistLabel.split(LABEL_MINUTES)
+  const labelRegepx = RegExp(`^${labelParts[0]}(\\d+)${labelParts[1]}$`)
 
   return Promise.all([getTasksCall(), getLabelsCall()])
     .then(([fetchedTasks, fetchedLabels]) => {
       const labels = fetchedLabels
-        .filter(filterLabelWithPrefix(labelPrefix))
-        .map(mapLabelsWithValue({ labelPrefix }))
+        // .filter(filterTasksByLabelPrefix(labelPrefix))
+        .filter(filterTasksByLabelTemplate(labelRegepx))
+        .map(mapLabelsWithValue({ labelPrefix, labelRegepx }))
 
       // TODO include also nested tasks. Right now all tasks that are set to `today` are included
 
@@ -24,18 +29,27 @@ function getTodaysTasksFilter () {
   return encodeURIComponent('today')
 }
 
-function filterLabelWithPrefix (prefix) {
+function filterTasksByLabelPrefix (prefix) {
   return item => item.name.indexOf(prefix) === 0
 }
 
-function mapLabelsWithValue ({ labelPrefix }) {
+function filterTasksByLabelTemplate (regexp) {
+  return item => !!item.name.match(regexp)
+}
+
+function mapLabelsWithValue ({ labelPrefix, labelRegepx }) {
   return (item) => {
     return {
       id: item.id,
       name: item.name,
-      value: getValueFromLabelName(item.name, labelPrefix)
+      value: extractMinutesFromLabel(item.name, labelRegepx)
+      // value: getValueFromLabelName(item.name, labelPrefix)
     }
   }
+}
+
+function extractMinutesFromLabel (value, regexp) {
+  return parseInt(value.match(regexp)[1])
 }
 
 function getValueFromLabelName (name, labelPrefix) {

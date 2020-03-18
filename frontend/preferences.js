@@ -5184,7 +5184,7 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$document = _Browser_document;
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$float = _Json_decodeFloat;
-var $author$project$Preferences$emptyPreferencesModel = {apiKey: '', refreshTimeInterval: 0};
+var $author$project$Preferences$emptyPreferencesModel = {apiKey: '', refreshTimeInterval: 0, todoistLabel: ''};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Maybe$withDefault = F2(
@@ -5227,6 +5227,110 @@ var $author$project$Preferences$updateRefreshTimeInterval = F2(
 					$elm$core$String$toFloat(value)) * 60000
 			});
 	});
+var $elm$core$Array$fromListHelp = F3(
+	function (list, nodeList, nodeListSize) {
+		fromListHelp:
+		while (true) {
+			var _v0 = A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, list);
+			var jsArray = _v0.a;
+			var remainingItems = _v0.b;
+			if (_Utils_cmp(
+				$elm$core$Elm$JsArray$length(jsArray),
+				$elm$core$Array$branchFactor) < 0) {
+				return A2(
+					$elm$core$Array$builderToArray,
+					true,
+					{nodeList: nodeList, nodeListSize: nodeListSize, tail: jsArray});
+			} else {
+				var $temp$list = remainingItems,
+					$temp$nodeList = A2(
+					$elm$core$List$cons,
+					$elm$core$Array$Leaf(jsArray),
+					nodeList),
+					$temp$nodeListSize = nodeListSize + 1;
+				list = $temp$list;
+				nodeList = $temp$nodeList;
+				nodeListSize = $temp$nodeListSize;
+				continue fromListHelp;
+			}
+		}
+	});
+var $elm$core$Array$fromList = function (list) {
+	if (!list.b) {
+		return $elm$core$Array$empty;
+	} else {
+		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
+	}
+};
+var $elm$core$Bitwise$and = _Bitwise_and;
+var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var $elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
+var $elm$core$Array$setHelp = F4(
+	function (shift, index, value, tree) {
+		var pos = $elm$core$Array$bitMask & (index >>> shift);
+		var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+		if (_v0.$ === 'SubTree') {
+			var subTree = _v0.a;
+			var newSub = A4($elm$core$Array$setHelp, shift - $elm$core$Array$shiftStep, index, value, subTree);
+			return A3(
+				$elm$core$Elm$JsArray$unsafeSet,
+				pos,
+				$elm$core$Array$SubTree(newSub),
+				tree);
+		} else {
+			var values = _v0.a;
+			var newLeaf = A3($elm$core$Elm$JsArray$unsafeSet, $elm$core$Array$bitMask & index, value, values);
+			return A3(
+				$elm$core$Elm$JsArray$unsafeSet,
+				pos,
+				$elm$core$Array$Leaf(newLeaf),
+				tree);
+		}
+	});
+var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var $elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var $elm$core$Array$set = F3(
+	function (index, value, array) {
+		var len = array.a;
+		var startShift = array.b;
+		var tree = array.c;
+		var tail = array.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? array : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? A4(
+			$elm$core$Array$Array_elm_builtin,
+			len,
+			startShift,
+			tree,
+			A3($elm$core$Elm$JsArray$unsafeSet, $elm$core$Array$bitMask & index, value, tail)) : A4(
+			$elm$core$Array$Array_elm_builtin,
+			len,
+			startShift,
+			A4($elm$core$Array$setHelp, startShift, index, value, tree),
+			tail));
+	});
+var $author$project$Preferences$updateTodoistLabel = F3(
+	function (model, value, part) {
+		return _Utils_update(
+			model,
+			{
+				todoistLabel: A2(
+					$elm$core$String$join,
+					'<minutes>',
+					$elm$core$Array$toList(
+						A3(
+							$elm$core$Array$set,
+							part,
+							value,
+							$elm$core$Array$fromList(
+								A2($elm$core$String$split, '<minutes>', model.todoistLabel)))))
+			});
+	});
 var $elm$json$Json$Encode$float = _Json_wrap;
 var $elm$json$Json$Encode$object = function (pairs) {
 	return _Json_wrap(
@@ -5253,7 +5357,10 @@ var $author$project$Preferences$userSettingsSave = _Platform_outgoingPort(
 					$elm$json$Json$Encode$string($.apiKey)),
 					_Utils_Tuple2(
 					'refreshTimeInterval',
-					$elm$json$Json$Encode$float($.refreshTimeInterval))
+					$elm$json$Json$Encode$float($.refreshTimeInterval)),
+					_Utils_Tuple2(
+					'todoistLabel',
+					$elm$json$Json$Encode$string($.todoistLabel))
 				]));
 	});
 var $author$project$Preferences$update = F2(
@@ -5279,6 +5386,24 @@ var $author$project$Preferences$update = F2(
 						model,
 						{
 							preferences: A2($author$project$Preferences$updateRefreshTimeInterval, model.preferences, value)
+						}),
+					$elm$core$Platform$Cmd$none);
+			case 'OnTodoistLabelPrefixInputChange':
+				var value = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							preferences: A3($author$project$Preferences$updateTodoistLabel, model.preferences, value, 0)
+						}),
+					$elm$core$Platform$Cmd$none);
+			case 'OnTodoistLabelSuffixInputChange':
+				var value = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							preferences: A3($author$project$Preferences$updateTodoistLabel, model.preferences, value, 1)
 						}),
 					$elm$core$Platform$Cmd$none);
 			default:
@@ -6294,9 +6419,6 @@ var $Skinney$murmur3$Murmur3$HashData = F4(
 	});
 var $Skinney$murmur3$Murmur3$c1 = 3432918353;
 var $Skinney$murmur3$Murmur3$c2 = 461845907;
-var $elm$core$Bitwise$and = _Bitwise_and;
-var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
-var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
 var $Skinney$murmur3$Murmur3$multiplyBy = F2(
 	function (b, a) {
 		return ((a & 65535) * b) + ((((a >>> 16) * b) & 65535) << 16);
@@ -7749,6 +7871,95 @@ var $elm$html$Html$section = _VirtualDom_node('section');
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $author$project$Preferences$OnTodoistLabelPrefixInputChange = function (a) {
+	return {$: 'OnTodoistLabelPrefixInputChange', a: a};
+};
+var $author$project$Preferences$OnTodoistLabelSuffixInputChange = function (a) {
+	return {$: 'OnTodoistLabelSuffixInputChange', a: a};
+};
+var $elm$core$Array$getHelp = F3(
+	function (shift, index, tree) {
+		getHelp:
+		while (true) {
+			var pos = $elm$core$Array$bitMask & (index >>> shift);
+			var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_v0.$ === 'SubTree') {
+				var subTree = _v0.a;
+				var $temp$shift = shift - $elm$core$Array$shiftStep,
+					$temp$index = index,
+					$temp$tree = subTree;
+				shift = $temp$shift;
+				index = $temp$index;
+				tree = $temp$tree;
+				continue getHelp;
+			} else {
+				var values = _v0.a;
+				return A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, values);
+			}
+		}
+	});
+var $elm$core$Array$get = F2(
+	function (index, _v0) {
+		var len = _v0.a;
+		var startShift = _v0.b;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? $elm$core$Maybe$Just(
+			A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, tail)) : $elm$core$Maybe$Just(
+			A3($elm$core$Array$getHelp, startShift, index, tree)));
+	});
+var $author$project$Preferences$viewTodolistLabel = function (label) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('uk-form-controls')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('input-todoist-label'),
+						$elm$html$Html$Attributes$class('uk-input'),
+						$elm$html$Html$Attributes$type_('text'),
+						$elm$html$Html$Events$onInput($author$project$Preferences$OnTodoistLabelPrefixInputChange),
+						$elm$html$Html$Attributes$value(
+						A2(
+							$elm$core$Maybe$withDefault,
+							'',
+							A2(
+								$elm$core$Array$get,
+								0,
+								$elm$core$Array$fromList(
+									A2($elm$core$String$split, '<minutes>', label)))))
+					]),
+				_List_Nil),
+				$elm$html$Html$text('<minutes>'),
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('input-todoist-label'),
+						$elm$html$Html$Attributes$class('uk-input'),
+						$elm$html$Html$Attributes$type_('text'),
+						$elm$html$Html$Events$onInput($author$project$Preferences$OnTodoistLabelSuffixInputChange),
+						$elm$html$Html$Attributes$value(
+						A2(
+							$elm$core$Maybe$withDefault,
+							'',
+							A2(
+								$elm$core$Array$get,
+								1,
+								$elm$core$Array$fromList(
+									A2($elm$core$String$split, '<minutes>', label)))))
+					]),
+				_List_Nil)
+			]));
+};
 var $author$project$Preferences$viewBody = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -7858,6 +8069,27 @@ var $author$project$Preferences$viewBody = function (model) {
 													]),
 												_List_Nil)
 											]))
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('uk-margin')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$label,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$for('input-todoist-label'),
+												$elm$html$Html$Attributes$class('uk-form-label')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Todoist label')
+											])),
+										$author$project$Preferences$viewTodolistLabel(model.preferences.todoistLabel)
 									]))
 							])),
 						A2(
@@ -7922,14 +8154,19 @@ _Platform_export({'Preferences':{'init':$author$project$Preferences$main(
 				$elm$core$Maybe$Just,
 				A2(
 					$elm$json$Json$Decode$andThen,
-					function (refreshTimeInterval) {
+					function (todoistLabel) {
 						return A2(
 							$elm$json$Json$Decode$andThen,
-							function (apiKey) {
-								return $elm$json$Json$Decode$succeed(
-									{apiKey: apiKey, refreshTimeInterval: refreshTimeInterval});
+							function (refreshTimeInterval) {
+								return A2(
+									$elm$json$Json$Decode$andThen,
+									function (apiKey) {
+										return $elm$json$Json$Decode$succeed(
+											{apiKey: apiKey, refreshTimeInterval: refreshTimeInterval, todoistLabel: todoistLabel});
+									},
+									A2($elm$json$Json$Decode$field, 'apiKey', $elm$json$Json$Decode$string));
 							},
-							A2($elm$json$Json$Decode$field, 'apiKey', $elm$json$Json$Decode$string));
+							A2($elm$json$Json$Decode$field, 'refreshTimeInterval', $elm$json$Json$Decode$float));
 					},
-					A2($elm$json$Json$Decode$field, 'refreshTimeInterval', $elm$json$Json$Decode$float)))
+					A2($elm$json$Json$Decode$field, 'todoistLabel', $elm$json$Json$Decode$string)))
 			])))(0)}});}(this));
