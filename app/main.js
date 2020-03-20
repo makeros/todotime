@@ -1,4 +1,5 @@
 const { app, Tray, Menu, BrowserWindow } = require('electron')
+const path = require('path')
 const getTimeFromTasks = require('./src/get-time-from-tasks')
 const store = require('./src/store')
 const getTextForTray = require('./src/get-text-for-tray')
@@ -31,7 +32,7 @@ app.on('window-all-closed', function () {
 
 function createTray (app) {
   return async function () {
-    tray = new Tray('./assets/todoist3.png')
+    tray = new Tray(path.join(__dirname, 'assets/todoist3.png'))
     tray.setToolTip('Timedoist')
     tray.setTitle('-')
 
@@ -68,7 +69,7 @@ function createPreferencesWindow () {
     }
   })
 
-  preferencesWindow.loadFile('./frontend/preferences.html')
+  preferencesWindow.loadFile(path.join(__dirname, 'frontend/preferences.html'))
 
   preferencesWindow.on('closed', function () {
     preferencesWindow = null
