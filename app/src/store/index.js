@@ -41,6 +41,7 @@ function parseDataFile (filePath, defaults) {
   try {
     return JSON.parse(fs.readFileSync(filePath))
   } catch (error) {
+    console.error('Loading user data: ', error)
     return defaults
   }
 }
