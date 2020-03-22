@@ -12,6 +12,7 @@
   "author": "arek czogala <mail@arekczogala.pl>",
   "scripts": {
     "start": "electron .",
+    "test": "npm run test:unit",
     "test:unit": "jest ./app/src",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
