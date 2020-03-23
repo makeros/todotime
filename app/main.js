@@ -1,7 +1,8 @@
 const { app, Tray, Menu, BrowserWindow } = require('electron')
 const path = require('path')
 const getTimeFromTasks = require('./src/get-time-from-tasks')
-const store = require('./src/store')
+const preferencesStore = require('./src/store/preferences')
+const appStore = require('./src/store/app')
 const getTextForTray = require('./src/get-text-for-tray')
 const getTextFromMinutes = require('./src/get-text-from-minutes')
 const { ipcMain } = require('electron')
@@ -33,23 +34,27 @@ app.on('window-all-closed', function () {
 function createTray (app) {
   return async function () {
     tray = new Tray(path.join(__dirname, 'assets/todoist3.png'))
-    tray.setToolTip('Timedoist')
-    tray.setTitle('-')
+
+    tray.setTitle('')
+
+    tray.on('click', () => {
+      const menu = getContextMenu(app, tray, Menu, {
+        checkNow: () => refreshTime(preferencesStore.get('refreshTimeInterval'))
+      })
+      tray.popUpContextMenu(menu)
+    })
 
     const refreshTime = getRefreshTime((value) => {
-      tray.setTitle(getTextForTray(getTextFromMinutes, value))
+      tray.setTitle(getTextForTray(getTextFromMinutes, value)),
+      appStore.set('lastSync', new Date())
     }, timers)
 
-    tray.setContextMenu(getContextMenu(app, tray, Menu, {
-      checkNow: () => refreshTime(store.get('refreshTimeInterval'))
-    }))
+    refreshTime(preferencesStore.get('refreshTimeInterval'))
 
-    refreshTime(store.get('refreshTimeInterval'))
-
-    store.on('changed-data', (newData) => {
+    preferencesStore.on('changed-data', (newData) => {
       const newDataKeys = Object.keys(newData)
       if (newDataKeys.includes('refreshTimeInterval') || newDataKeys.includes('apiKey') || newDataKeys.includes('todoistLabel')) {
-        refreshTime(store.get('refreshTimeInterval'))
+        refreshTime(preferencesStore.get('refreshTimeInterval'))
       }
     })
   }
@@ -79,9 +84,9 @@ function createPreferencesWindow () {
 async function fetchTasksTime () {
   try {
     const hours = await getTimeFromTasks({
-      authKey: store.get('apiKey'),
+      authKey: preferencesStore.get('apiKey'),
       labelPrefix: 't-',
-      todoistLabel: store.get('todoistLabel')
+      todoistLabel: preferencesStore.get('todoistLabel')
     })
     return hours
   } catch (e) {
@@ -99,15 +104,24 @@ function onUserSettingsSave (event, payload) {
 }
 
 function onUserSettingsGet (event) {
-  event.reply('user-settings:get:reply', { ...store.data })
+  event.reply('user-settings:get:reply', { ...preferencesStore.data })
 }
 
 function savePayloadToStore (payload) {
-  store.set(payload)
+  preferencesStore.set(payload)
 }
 
 function getContextMenu (app, tray, menu, actions) {
+  const lastSync = getDatesSinceFormat(new Date(), appStore.get('lastSync'))
   return menu.buildFromTemplate([
+    {
+      id: 'syncTime',
+      label: 'Last sync: ' + lastSync,
+      type: "normal",
+      enabled: false,
+      click: () => {}
+    },
+    { type: 'separator' },
     {
       label: 'Check now!',
       type: 'normal',
@@ -124,11 +138,46 @@ function getContextMenu (app, tray, menu, actions) {
     },
     { type: 'separator' },
     {
+      type: "normal",
+      role: "about"
+    },
+    {
       label: 'Quit',
       type: 'normal',
-      click () {
-        app.quit()
-      }
+      role: "quit"
     }
   ])
+}
+
+function getDatesSinceFormat(from, date) {
+  let diff = from - date; // the difference in milliseconds
+
+  if (diff < 1000) { // less than 1 second
+    return 'right now';
+  }
+
+  let sec = Math.floor(diff / 1000); // convert diff to seconds
+
+  if (sec < 60) {
+    return sec + ' sec. ago';
+  }
+
+  let min = Math.floor(diff / 60000); // convert diff to minutes
+  if (min < 60) {
+    return min + ' min. ago';
+  }
+
+  // format the date
+  // add leading zeroes to single-digit day/month/hours/minutes
+  let d = date;
+  d = [
+    '0' + d.getDate(),
+    '0' + (d.getMonth() + 1),
+    '' + d.getFullYear(),
+    '0' + d.getHours(),
+    '0' + d.getMinutes()
+  ].map(component => component.slice(-2)); // take last 2 digits of every component
+
+  // join the components into date
+  return d.slice(0, 3).join('.') + ' ' + d.slice(3).join(':');
 }

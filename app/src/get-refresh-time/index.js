@@ -8,7 +8,7 @@ module.exports = function ({ logger ,fetchTasksTime }) {
           cb(minutes)
         } catch (e) {
           // TODO run logger
-          logger.log('refresh loop error')
+          logger.log('refresh loop error', e)
           loop(timeInterval, true)
         }
         if (!once) loop(timeInterval, true)
