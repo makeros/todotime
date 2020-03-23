@@ -7,9 +7,9 @@ import Array
 import Browser
 import Browser.Dom as Dom
 import Css exposing (..)
-import Css.Global exposing (body, global)
+import Css.Global exposing (body, global, html)
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (class, for, id, type_, value)
 import Html.Events exposing (..)
 import Html.Styled exposing (toUnstyled)
 import Json.Decode as JD
@@ -126,7 +126,16 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "Timedoist • Preferences"
     , body =
-        [ toUnstyled (global [ body [ margin (px 0) ] ])
+        [ toUnstyled
+            (global
+                [ body
+                    [ margin (px 0)
+                    , backgroundColor (hex "222")
+                    , height (pct 100)
+                    ]
+                , html [ height (pct 100) ]
+                ]
+            )
         , viewBody model
         ]
     }
@@ -134,31 +143,31 @@ view model =
 
 viewBody : Model -> Html Msg
 viewBody model =
-    div [ class "uk-margin" ]
-        [ h1 [] [ text "test" ]
-        , section []
-            [ Html.form [ class "uk-form-horizontal uk-margin-large" ]
+    div [ class "uk-section uk-section-secondary" ]
+        [ section [ class "uk-container uk-container-large" ]
+            [ h1 [] [ text "Preferences" ]
+            , Html.form [ class "uk-form-horizontal uk-margin-large" ]
                 [ div [ class "uk-margin" ]
                     [ label [ for "input-api-key", class "uk-form-label" ]
-                        [ text "Todoist API Key" ]
+                        [ text "Todoist API Key:" ]
                     , div
                         [ class "uk-form-controls" ]
-                        [ input [ id "input-api-key", class "uk-input", type_ "text", onInput OnApiKeyInputChange, value model.preferences.apiKey ] []
+                        [ input [ id "input-api-key", class "uk-input uk-form-width-large", type_ "text", onInput OnApiKeyInputChange, value model.preferences.apiKey ] []
                         ]
                     ]
                 , div [ class "uk-margin" ]
-                    [ label [ for "input-refresh-interval", class "uk-form-label" ] [ text "Task refresh time" ]
+                    [ label [ for "input-refresh-interval", class "uk-form-label" ] [ text "Task refresh time:" ]
                     , div [ class "uk-form-controls" ]
-                        [ input [ id "input-refresh-interval", class "uk-input", type_ "text", onInput OnRefreshIntervalInputChange, value (String.fromFloat (model.preferences.refreshTimeInterval / 60000)) ] []
+                        [ input [ id "input-refresh-interval", class "uk-input uk-form-width-small", type_ "number", onInput OnRefreshIntervalInputChange, value (String.fromFloat (model.preferences.refreshTimeInterval / 60000)) ] []
                         ]
                     ]
                 , div [ class "uk-margin" ]
-                    [ label [ for "input-todoist-label", class "uk-form-label" ] [ text "Todoist label" ]
+                    [ label [ for "input-todoist-label", class "uk-form-label" ] [ text "Todoist label:" ]
                     , viewTodolistLabel model.preferences.todoistLabel
                     ]
                 ]
-            , div [ class "uk-margin" ]
-                [ button [ class "uk-button uk-button-primary", onClick OnPreferencesSave ] [ text "Save Preferences" ]
+            , div [ class "uk-margin uk-controls" ]
+                [ button [ class "uk-button uk-button-primary uk-width-1-2", onClick OnPreferencesSave ] [ text "Save Preferences" ]
                 ]
             ]
         ]
@@ -167,7 +176,8 @@ viewBody model =
 viewTodolistLabel : String -> Html Msg
 viewTodolistLabel label =
     div [ class "uk-form-controls" ]
-        [ input [ id "input-todoist-label", class "uk-input", type_ "text", onInput OnTodoistLabelPrefixInputChange, value (Maybe.withDefault "" (Array.get 0 (Array.fromList (String.split "<minutes>" label)))) ] []
+        [ input [ id "input-todoist-label", class "uk-input uk-form-width-small", type_ "text", onInput OnTodoistLabelPrefixInputChange, value (Maybe.withDefault "" (Array.get 0 (Array.fromList (String.split "<minutes>" label)))) ] []
         , text "<minutes>"
-        , input [ id "input-todoist-label", class "uk-input", type_ "text", onInput OnTodoistLabelSuffixInputChange, value (Maybe.withDefault "" (Array.get 1 (Array.fromList (String.split "<minutes>" label)))) ] []
+        , input [ id "input-todoist-label", class "uk-input uk-form-width-small", type_ "text", onInput OnTodoistLabelSuffixInputChange, value (Maybe.withDefault "" (Array.get 1 (Array.fromList (String.split "<minutes>" label)))) ] []
+        , div [ class "uk-text-muted" ] [ text "Todoist label example: ", span [ class "uk-text-success" ] [ text "@", text (String.replace "<minutes>" "120" label) ] ]
         ]
