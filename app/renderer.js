@@ -4,7 +4,7 @@ module.exports = {
   userSettingsSave: function (cb, payload) {
     // TODO: validate the payload before saving it to store
     ipcRenderer.send('user-settings:save', payload)
-    ipcRenderer.once('user-settings:save:reply', cb)
+    ipcRenderer.once('user-settings:save:reply', (event) => cb(undefined, event))
   },
   getUserSettings: function (cb) {
     ipcRenderer.send('user-settings:get')

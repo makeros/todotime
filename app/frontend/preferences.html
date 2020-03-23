@@ -6,8 +6,8 @@
     <link rel="stylesheet" href="../assets/uikit-3.3.6/css/uikit.min.css" />
 
     <!-- UIkit JS -->
-    <script src="https://cdn.jsdelivr.net/npm/uikit@3.3.6/dist/js/uikit.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/uikit@3.3.6/dist/js/uikit-icons.min.js"></script>
+    <script src="../assets/uikit-3.3.6/js/uikit.min.js"></script>
+    <script src="../assets/uikit-3.3.6/js/uikit-icons.min.js"></script>
   </head>
   <body>
     <div id="elm"></div>
@@ -21,8 +21,12 @@
         });
 
         app.ports.userSettingsSave.subscribe(function(settings) {
-          renderer.userSettingsSave(function () {
-            alert('api key saved!')
+          renderer.userSettingsSave(function (err) {
+            if (err) {
+              alert('There was an error while saving the preferences.')
+            } else {
+              alert('Preferences saved!')
+            }
           }, settings)
         });
       })
