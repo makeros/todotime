@@ -9,7 +9,7 @@ import Browser.Dom as Dom
 import Css exposing (..)
 import Css.Global exposing (body, global, html)
 import Html exposing (..)
-import Html.Attributes exposing (class, for, id, type_, value)
+import Html.Attributes exposing (attribute, class, classList, disabled, for, id, type_, value)
 import Html.Events exposing (..)
 import Html.Styled exposing (toUnstyled)
 import Json.Decode as JD
@@ -19,9 +19,19 @@ import Task
 
 
 -- import UI
+-- TODO: create just one port for IN and one port for OUT
 
 
 port userSettingsSave : PreferencesModel -> Cmd msg
+
+
+port checkTodoistPremiumCallback : (Bool -> msg) -> Sub msg
+
+
+port checkTodoistPremium : String -> Cmd msg
+
+
+port closeWindow : () -> Cmd msg
 
 
 main : Program (Maybe PreferencesModel) Model Msg
@@ -30,7 +40,7 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         }
 
 
@@ -38,9 +48,19 @@ init : Maybe PreferencesModel -> ( Model, Cmd Msg )
 init maybePreferencesModel =
     ( { preferences = Maybe.withDefault emptyPreferencesModel maybePreferencesModel
       , saving = False
+      , todoistPremiumChecking = False
       }
     , Cmd.none
     )
+
+
+
+-- Subscriptions
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    checkTodoistPremiumCallback TodoistPremiumChanged
 
 
 
@@ -50,6 +70,12 @@ init maybePreferencesModel =
 type alias Model =
     { preferences : PreferencesModel
     , saving : Bool
+    , todoistPremiumChecking : Bool
+    }
+
+
+type alias TodoistStateModel =
+    { isPremium : Bool
     }
 
 
@@ -57,6 +83,7 @@ type alias PreferencesModel =
     { apiKey : String
     , refreshTimeInterval : Float
     , todoistLabel : String
+    , isTodoistPremium : Bool
     }
 
 
@@ -65,6 +92,7 @@ emptyPreferencesModel =
     { apiKey = ""
     , refreshTimeInterval = 0
     , todoistLabel = ""
+    , isTodoistPremium = False
     }
 
 
@@ -79,6 +107,9 @@ type Msg
     | OnTodoistLabelPrefixInputChange String
     | OnTodoistLabelSuffixInputChange String
     | OnPreferencesSave
+    | TodoistPremiumChanged Bool
+    | OnTodoistPremiumCheckClick
+    | OnWindowCLoseClick
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -88,7 +119,7 @@ update msg model =
             ( model, userSettingsSave model.preferences )
 
         OnApiKeyInputChange value ->
-            ( { model | preferences = updateApiKey model.preferences value }, Cmd.none )
+            ( { model | preferences = updateApiKey model.preferences value }, Task.succeed OnTodoistPremiumCheckClick |> Task.perform identity )
 
         OnRefreshIntervalInputChange value ->
             ( { model | preferences = updateRefreshTimeInterval model.preferences value }, Cmd.none )
@@ -99,8 +130,22 @@ update msg model =
         OnTodoistLabelSuffixInputChange value ->
             ( { model | preferences = updateTodoistLabel model.preferences value 1 }, Cmd.none )
 
+        TodoistPremiumChanged isPremium ->
+            ( { model | preferences = updateTodoistPremium model.preferences isPremium, todoistPremiumChecking = False }, Cmd.none )
+
+        OnTodoistPremiumCheckClick ->
+            ( { model | todoistPremiumChecking = True }, checkTodoistPremium model.preferences.apiKey )
+
+        OnWindowCLoseClick ->
+            ( model, closeWindow () )
+
         NoOp ->
             ( model, Cmd.none )
+
+
+updateTodoistPremium : PreferencesModel -> Bool -> PreferencesModel
+updateTodoistPremium model value =
+    { model | isTodoistPremium = value }
 
 
 updateApiKey : PreferencesModel -> String -> PreferencesModel
@@ -130,7 +175,7 @@ view model =
             (global
                 [ body
                     [ margin (px 0)
-                    , backgroundColor (hex "222")
+                    , backgroundColor (hex "f9f9f9")
                     , height (pct 100)
                     ]
                 , html [ height (pct 100) ]
@@ -143,7 +188,7 @@ view model =
 
 viewBody : Model -> Html Msg
 viewBody model =
-    div [ class "uk-section uk-section-secondary" ]
+    div [ class "uk-section" ]
         [ section [ class "uk-container uk-container-large" ]
             [ h1 [] [ text "Preferences" ]
             , Html.form [ class "uk-form-horizontal uk-margin-large" ]
@@ -154,6 +199,11 @@ viewBody model =
                         [ class "uk-form-controls" ]
                         [ input [ id "input-api-key", class "uk-input uk-form-width-large", type_ "text", onInput OnApiKeyInputChange, value model.preferences.apiKey ] []
                         ]
+                    ]
+                , div [ class "uk-margin" ]
+                    [ label [ for "btn-check-premium", class "uk-form-label" ] [ text "Todoist Premium check:" ]
+                    , div []
+                        [ viewCheckTodoisPremium model.preferences.isTodoistPremium model.todoistPremiumChecking ]
                     ]
                 , div [ class "uk-margin" ]
                     [ label [ for "input-refresh-interval", class "uk-form-label" ] [ text "Task refresh time:" ]
@@ -167,7 +217,8 @@ viewBody model =
                     ]
                 ]
             , div [ class "uk-margin uk-controls" ]
-                [ button [ class "uk-button uk-button-primary uk-width-1-2", onClick OnPreferencesSave ] [ text "Save Preferences" ]
+                [ button [ class "uk-button uk-button-default uk-width-1-2", onClick OnWindowCLoseClick ] [ text "Cancel" ]
+                , button [ class "uk-button uk-button-primary uk-width-1-2", onClick OnPreferencesSave ] [ text "Save Preferences" ]
                 ]
             ]
         ]
@@ -181,3 +232,46 @@ viewTodolistLabel label =
         , input [ id "input-todoist-label", class "uk-input uk-form-width-small", type_ "text", onInput OnTodoistLabelSuffixInputChange, value (Maybe.withDefault "" (Array.get 1 (Array.fromList (String.split "<minutes>" label)))) ] []
         , div [ class "uk-text-muted" ] [ text "Todoist label example: ", span [ class "uk-text-success" ] [ text "@", text (String.replace "<minutes>" "120" label) ] ]
         ]
+
+
+viewCheckTodoisPremium : Bool -> Bool -> Html Msg
+viewCheckTodoisPremium isPremium isLoading =
+    if isPremium == True then
+        div []
+            [ span
+                [ classList
+                    [ ( "uk-text-success", isLoading == False )
+                    , ( "uk-animation-scale-down", isLoading == False )
+                    ]
+                , class "uk-padding-small uk-padding-remove-vertical"
+                , attribute "uk-icon" "check"
+                ]
+                []
+            , button
+                [ onClick OnTodoistPremiumCheckClick
+                , type_ "button"
+                , Html.Attributes.disabled isLoading
+                , class "uk-button uk-button-primary"
+                ]
+                [ text "Recheck" ]
+            ]
+
+    else
+        div []
+            [ span
+                [ classList
+                    [ ( "uk-text-danger", isLoading == False )
+                    , ( "uk-animation-scale-down", isLoading == False )
+                    ]
+                , class "uk-padding-small uk-padding-remove-vertical"
+                , attribute "uk-icon" "warning"
+                ]
+                []
+            , button
+                [ onClick OnTodoistPremiumCheckClick
+                , type_ "button"
+                , Html.Attributes.disabled isLoading
+                , class "uk-button uk-button-danger"
+                ]
+                [ text "Check" ]
+            ]
