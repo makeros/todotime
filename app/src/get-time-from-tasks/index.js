@@ -1,9 +1,9 @@
-const { get } = require('https')
-const LABEL_MINUTES = "<minutes>"
+const getCall = require('./get-call')
+const LABEL_MINUTES = '<minutes>'
 
-module.exports = function getHours ({ authKey, labelPrefix, todoistLabel }) {
-  const getTasksCall = getCall(`https://api.todoist.com/rest/v1/tasks?filter=${getTodaysTasksFilter()}`, { authKey })
-  const getLabelsCall = getCall('https://api.todoist.com/rest/v1/labels', { authKey })
+module.exports = function ({ authKey, labelPrefix, todoistLabel }) {
+  const getTasksCall = getCall(getTasksForTodayUrl(), { authKey })
+  const getLabelsCall = getCall(getLabelsUrl(), { authKey })
 
   const labelParts = todoistLabel.split(LABEL_MINUTES)
   const labelRegepx = RegExp(`^${labelParts[0]}(\\d+)${labelParts[1]}$`)
@@ -11,7 +11,6 @@ module.exports = function getHours ({ authKey, labelPrefix, todoistLabel }) {
   return Promise.all([getTasksCall(), getLabelsCall()])
     .then(([fetchedTasks, fetchedLabels]) => {
       const labels = fetchedLabels
-        // .filter(filterTasksByLabelPrefix(labelPrefix))
         .filter(filterTasksByLabelTemplate(labelRegepx))
         .map(mapLabelsWithValue({ labelPrefix, labelRegepx }))
 
@@ -22,11 +21,14 @@ module.exports = function getHours ({ authKey, labelPrefix, todoistLabel }) {
         .map(attachTimeLabelsToTask(labels))
         .reduce(calculateTimeInMinutes, 0)
     })
-    // .then(getHoursFromMinutes)
 }
 
-function getTodaysTasksFilter () {
-  return encodeURIComponent('today')
+function getTasksForTodayUrl () {
+  return 'https://api.todoist.com/rest/v1/tasks?filter=today'
+}
+
+function getLabelsUrl () {
+  return 'https://api.todoist.com/rest/v1/labels'
 }
 
 function filterTasksByLabelPrefix (prefix) {
@@ -43,7 +45,6 @@ function mapLabelsWithValue ({ labelPrefix, labelRegepx }) {
       id: item.id,
       name: item.name,
       value: extractMinutesFromLabel(item.name, labelRegepx)
-      // value: getValueFromLabelName(item.name, labelPrefix)
     }
   }
 }
@@ -56,34 +57,6 @@ function getValueFromLabelName (name, labelPrefix) {
   return name.split(labelPrefix)[1]
 }
 
-// function getHoursFromMinutes (minutes) {
-//   return (minutes / 60)
-// }
-
-function getCall (url, { authKey }) {
-  return () => new Promise((resolve, reject) => {
-    get(url, {
-      headers: {
-        Authorization: `Bearer ${authKey}`
-      }
-    }, (response) => {
-      let body = ''
-      response.on('data', (chunk) => (body += chunk))
-      response.on('end', function () {
-        try {
-          resolve(JSON.parse(body))
-        } catch (e) {
-          reject(body)
-        }
-      })
-      response.on('error', function (e) {
-        reject(e)
-      })
-    }).on('error', (e) => {
-      reject(e)
-    })
-  })
-}
 
 function attachTimeLabelsToTask (labels) {
   return (task) => {

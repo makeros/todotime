@@ -4868,6 +4868,7 @@ var $elm$core$Result$isOk = function (result) {
 	}
 };
 var $elm$json$Json$Decode$andThen = _Json_andThen;
+var $elm$json$Json$Decode$bool = _Json_decodeBool;
 var $elm$json$Json$Decode$map = _Json_map1;
 var $elm$json$Json$Decode$map2 = _Json_map2;
 var $elm$json$Json$Decode$succeed = _Json_succeed;
@@ -5184,7 +5185,7 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$document = _Browser_document;
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$float = _Json_decodeFloat;
-var $author$project$Preferences$emptyPreferencesModel = {apiKey: '', refreshTimeInterval: 0, todoistLabel: ''};
+var $author$project$Preferences$emptyPreferencesModel = {apiKey: '', isTodoistPremium: false, refreshTimeInterval: 0, todoistLabel: ''};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Maybe$withDefault = F2(
@@ -5200,15 +5201,30 @@ var $author$project$Preferences$init = function (maybePreferencesModel) {
 	return _Utils_Tuple2(
 		{
 			preferences: A2($elm$core$Maybe$withDefault, $author$project$Preferences$emptyPreferencesModel, maybePreferencesModel),
-			saving: false
+			saving: false,
+			todoistPremiumChecking: false
 		},
 		$elm$core$Platform$Cmd$none);
 };
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
 var $elm$json$Json$Decode$null = _Json_decodeNull;
 var $elm$json$Json$Decode$oneOf = _Json_oneOf;
 var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Preferences$TodoistPremiumChanged = function (a) {
+	return {$: 'TodoistPremiumChanged', a: a};
+};
+var $author$project$Preferences$checkTodoistPremiumCallback = _Platform_incomingPort('checkTodoistPremiumCallback', $elm$json$Json$Decode$bool);
+var $author$project$Preferences$subscriptions = function (model) {
+	return $author$project$Preferences$checkTodoistPremiumCallback($author$project$Preferences$TodoistPremiumChanged);
+};
+var $author$project$Preferences$OnTodoistPremiumCheckClick = {$: 'OnTodoistPremiumCheckClick'};
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Preferences$checkTodoistPremium = _Platform_outgoingPort('checkTodoistPremium', $elm$json$Json$Encode$string);
+var $elm$json$Json$Encode$null = _Json_encodeNull;
+var $author$project$Preferences$closeWindow = _Platform_outgoingPort(
+	'closeWindow',
+	function ($) {
+		return $elm$json$Json$Encode$null;
+	});
 var $author$project$Preferences$updateApiKey = F2(
 	function (model, value) {
 		return _Utils_update(
@@ -5331,6 +5347,13 @@ var $author$project$Preferences$updateTodoistLabel = F3(
 								A2($elm$core$String$split, '<minutes>', model.todoistLabel)))))
 			});
 	});
+var $author$project$Preferences$updateTodoistPremium = F2(
+	function (model, value) {
+		return _Utils_update(
+			model,
+			{isTodoistPremium: value});
+	});
+var $elm$json$Json$Encode$bool = _Json_wrap;
 var $elm$json$Json$Encode$float = _Json_wrap;
 var $elm$json$Json$Encode$object = function (pairs) {
 	return _Json_wrap(
@@ -5345,7 +5368,6 @@ var $elm$json$Json$Encode$object = function (pairs) {
 			_Json_emptyObject(_Utils_Tuple0),
 			pairs));
 };
-var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Preferences$userSettingsSave = _Platform_outgoingPort(
 	'userSettingsSave',
 	function ($) {
@@ -5355,6 +5377,9 @@ var $author$project$Preferences$userSettingsSave = _Platform_outgoingPort(
 					_Utils_Tuple2(
 					'apiKey',
 					$elm$json$Json$Encode$string($.apiKey)),
+					_Utils_Tuple2(
+					'isTodoistPremium',
+					$elm$json$Json$Encode$bool($.isTodoistPremium)),
 					_Utils_Tuple2(
 					'refreshTimeInterval',
 					$elm$json$Json$Encode$float($.refreshTimeInterval)),
@@ -5378,7 +5403,10 @@ var $author$project$Preferences$update = F2(
 						{
 							preferences: A2($author$project$Preferences$updateApiKey, model.preferences, value)
 						}),
-					$elm$core$Platform$Cmd$none);
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$identity,
+						$elm$core$Task$succeed($author$project$Preferences$OnTodoistPremiumCheckClick)));
 			case 'OnRefreshIntervalInputChange':
 				var value = msg.a;
 				return _Utils_Tuple2(
@@ -5406,6 +5434,26 @@ var $author$project$Preferences$update = F2(
 							preferences: A3($author$project$Preferences$updateTodoistLabel, model.preferences, value, 1)
 						}),
 					$elm$core$Platform$Cmd$none);
+			case 'TodoistPremiumChanged':
+				var isPremium = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							preferences: A2($author$project$Preferences$updateTodoistPremium, model.preferences, isPremium),
+							todoistPremiumChecking: false
+						}),
+					$elm$core$Platform$Cmd$none);
+			case 'OnTodoistPremiumCheckClick':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{todoistPremiumChecking: true}),
+					$author$project$Preferences$checkTodoistPremium(model.preferences.apiKey));
+			case 'OnWindowCLoseClick':
+				return _Utils_Tuple2(
+					model,
+					$author$project$Preferences$closeWindow(_Utils_Tuple0));
 			default:
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 		}
@@ -8192,6 +8240,7 @@ var $author$project$Preferences$OnPreferencesSave = {$: 'OnPreferencesSave'};
 var $author$project$Preferences$OnRefreshIntervalInputChange = function (a) {
 	return {$: 'OnRefreshIntervalInputChange', a: a};
 };
+var $author$project$Preferences$OnWindowCLoseClick = {$: 'OnWindowCLoseClick'};
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -8260,6 +8309,105 @@ var $elm$html$Html$section = _VirtualDom_node('section');
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $elm$virtual_dom$VirtualDom$attribute = F2(
+	function (key, value) {
+		return A2(
+			_VirtualDom_attribute,
+			_VirtualDom_noOnOrFormAction(key),
+			_VirtualDom_noJavaScriptOrHtmlUri(value));
+	});
+var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$html$Html$Attributes$classList = function (classes) {
+	return $elm$html$Html$Attributes$class(
+		A2(
+			$elm$core$String$join,
+			' ',
+			A2(
+				$elm$core$List$map,
+				$elm$core$Tuple$first,
+				A2($elm$core$List$filter, $elm$core$Tuple$second, classes))));
+};
+var $elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$bool(bool));
+	});
+var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $author$project$Preferences$viewCheckTodoisPremium = F2(
+	function (isPremium, isLoading) {
+		return isPremium ? A2(
+			$elm$html$Html$div,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$span,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$classList(
+							_List_fromArray(
+								[
+									_Utils_Tuple2('uk-text-success', !isLoading),
+									_Utils_Tuple2('uk-animation-scale-down', !isLoading)
+								])),
+							$elm$html$Html$Attributes$class('uk-padding-small uk-padding-remove-vertical'),
+							A2($elm$html$Html$Attributes$attribute, 'uk-icon', 'check')
+						]),
+					_List_Nil),
+					A2(
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Events$onClick($author$project$Preferences$OnTodoistPremiumCheckClick),
+							$elm$html$Html$Attributes$type_('button'),
+							$elm$html$Html$Attributes$disabled(isLoading),
+							$elm$html$Html$Attributes$class('uk-button uk-button-primary')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('Recheck')
+						]))
+				])) : A2(
+			$elm$html$Html$div,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$span,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$classList(
+							_List_fromArray(
+								[
+									_Utils_Tuple2('uk-text-danger', !isLoading),
+									_Utils_Tuple2('uk-animation-scale-down', !isLoading)
+								])),
+							$elm$html$Html$Attributes$class('uk-padding-small uk-padding-remove-vertical'),
+							A2($elm$html$Html$Attributes$attribute, 'uk-icon', 'warning')
+						]),
+					_List_Nil),
+					A2(
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Events$onClick($author$project$Preferences$OnTodoistPremiumCheckClick),
+							$elm$html$Html$Attributes$type_('button'),
+							$elm$html$Html$Attributes$disabled(isLoading),
+							$elm$html$Html$Attributes$class('uk-button uk-button-danger')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('Check')
+						]))
+				]));
+	});
 var $author$project$Preferences$OnTodoistLabelPrefixInputChange = function (a) {
 	return {$: 'OnTodoistLabelPrefixInputChange', a: a};
 };
@@ -8306,7 +8454,6 @@ var $elm$core$String$replace = F3(
 			after,
 			A2($elm$core$String$split, before, string));
 	});
-var $elm$html$Html$span = _VirtualDom_node('span');
 var $author$project$Preferences$viewTodolistLabel = function (label) {
 	return A2(
 		$elm$html$Html$div,
@@ -8384,7 +8531,7 @@ var $author$project$Preferences$viewBody = function (model) {
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('uk-section uk-section-secondary')
+				$elm$html$Html$Attributes$class('uk-section')
 			]),
 		_List_fromArray(
 			[
@@ -8463,6 +8610,33 @@ var $author$project$Preferences$viewBody = function (model) {
 										$elm$html$Html$label,
 										_List_fromArray(
 											[
+												$elm$html$Html$Attributes$for('btn-check-premium'),
+												$elm$html$Html$Attributes$class('uk-form-label')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Todoist Premium check:')
+											])),
+										A2(
+										$elm$html$Html$div,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2($author$project$Preferences$viewCheckTodoisPremium, model.preferences.isTodoistPremium, model.todoistPremiumChecking)
+											]))
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('uk-margin')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$label,
+										_List_fromArray(
+											[
 												$elm$html$Html$Attributes$for('input-refresh-interval'),
 												$elm$html$Html$Attributes$class('uk-form-label')
 											]),
@@ -8526,6 +8700,17 @@ var $author$project$Preferences$viewBody = function (model) {
 								$elm$html$Html$button,
 								_List_fromArray(
 									[
+										$elm$html$Html$Attributes$class('uk-button uk-button-default uk-width-1-2'),
+										$elm$html$Html$Events$onClick($author$project$Preferences$OnWindowCLoseClick)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Cancel')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
 										$elm$html$Html$Attributes$class('uk-button uk-button-primary uk-width-1-2'),
 										$elm$html$Html$Events$onClick($author$project$Preferences$OnPreferencesSave)
 									]),
@@ -8551,7 +8736,7 @@ var $author$project$Preferences$view = function (model) {
 									$rtfeldman$elm_css$Css$margin(
 									$rtfeldman$elm_css$Css$px(0)),
 									$rtfeldman$elm_css$Css$backgroundColor(
-									$rtfeldman$elm_css$Css$hex('222')),
+									$rtfeldman$elm_css$Css$hex('f9f9f9')),
 									$rtfeldman$elm_css$Css$height(
 									$rtfeldman$elm_css$Css$pct(100))
 								])),
@@ -8568,14 +8753,7 @@ var $author$project$Preferences$view = function (model) {
 	};
 };
 var $author$project$Preferences$main = $elm$browser$Browser$document(
-	{
-		init: $author$project$Preferences$init,
-		subscriptions: function (_v0) {
-			return $elm$core$Platform$Sub$none;
-		},
-		update: $author$project$Preferences$update,
-		view: $author$project$Preferences$view
-	});
+	{init: $author$project$Preferences$init, subscriptions: $author$project$Preferences$subscriptions, update: $author$project$Preferences$update, view: $author$project$Preferences$view});
 _Platform_export({'Preferences':{'init':$author$project$Preferences$main(
 	$elm$json$Json$Decode$oneOf(
 		_List_fromArray(
@@ -8592,11 +8770,16 @@ _Platform_export({'Preferences':{'init':$author$project$Preferences$main(
 							function (refreshTimeInterval) {
 								return A2(
 									$elm$json$Json$Decode$andThen,
-									function (apiKey) {
-										return $elm$json$Json$Decode$succeed(
-											{apiKey: apiKey, refreshTimeInterval: refreshTimeInterval, todoistLabel: todoistLabel});
+									function (isTodoistPremium) {
+										return A2(
+											$elm$json$Json$Decode$andThen,
+											function (apiKey) {
+												return $elm$json$Json$Decode$succeed(
+													{apiKey: apiKey, isTodoistPremium: isTodoistPremium, refreshTimeInterval: refreshTimeInterval, todoistLabel: todoistLabel});
+											},
+											A2($elm$json$Json$Decode$field, 'apiKey', $elm$json$Json$Decode$string));
 									},
-									A2($elm$json$Json$Decode$field, 'apiKey', $elm$json$Json$Decode$string));
+									A2($elm$json$Json$Decode$field, 'isTodoistPremium', $elm$json$Json$Decode$bool));
 							},
 							A2($elm$json$Json$Decode$field, 'refreshTimeInterval', $elm$json$Json$Decode$float));
 					},
