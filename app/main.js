@@ -7,6 +7,7 @@ const getTextForTray = require('./src/get-text-for-tray')
 const getTextFromMinutes = require('./src/get-text-from-minutes')
 const getTodoistPremiumStatus = require('./src/get-todoist-premium-status')
 const getTimeSince = require('./src/get-time-since')
+const trayIcon = require('./src/tray-icon')
 const { ipcMain } = require('electron')
 const logger = {
   log: function (...args) {
@@ -34,9 +35,16 @@ app.on('window-all-closed', function () {
   }
 })
 
+ipcMain.on('user-settings:save', onUserSettingsSave)
+ipcMain.on('user-settings:get', onUserSettingsGet)
+ipcMain.on('user-settings:check-todoist-premium', async function (event, apiKey) {
+  const status = await getTodoistPremiumStatus(apiKey)
+  event.reply('user-settings:check-todoist-premium:reply', status)
+})
+
 function createTray (app) {
   return async function () {
-    tray = new Tray(path.join(__dirname, 'assets/todoist3.png'))
+    tray = new Tray(trayIcon.getNormalIcon())
 
     tray.setTitle('')
 
@@ -47,9 +55,14 @@ function createTray (app) {
       tray.popUpContextMenu(menu)
     })
 
-    const refreshTime = getRefreshTime((value) => {
-      tray.setTitle(getTextForTray(getTextFromMinutes, value))
-      appStore.set('lastSync', new Date().getTime())
+    const refreshTime = getRefreshTime((err, value) => {
+      if (err) {
+        tray.setImage(trayIcon.getWarningIcon())
+      } else {
+        tray.setImage(trayIcon.getNormalIcon())
+        tray.setTitle(getTextForTray(getTextFromMinutes, value))
+        appStore.set('lastSync', new Date().getTime())
+      }
     }, timers)
 
     refreshTime(preferencesStore.get('refreshTimeInterval'))
@@ -96,13 +109,6 @@ async function fetchTasksTime () {
     throw e
   }
 }
-
-ipcMain.on('user-settings:save', onUserSettingsSave)
-ipcMain.on('user-settings:get', onUserSettingsGet)
-ipcMain.on('user-settings:check-todoist-premium', async function (event, apiKey) {
-  const status = await getTodoistPremiumStatus(apiKey)
-  event.reply('user-settings:check-todoist-premium:reply', status)
-})
 
 function onUserSettingsSave (event, payload) {
   savePayloadToStore(payload)
