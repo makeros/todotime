@@ -1,13 +1,12 @@
-name: Run tests on CI
+name: Release the Mac OS app
 
 on:
-  pull_request:
-    branches:
-    - master
+  create:
+    tags:
 
 jobs:
-  build_and_test:
-    runs-on: ubuntu-latest
+  release:
+    runs-on: macOS-latest
     strategy:
       matrix:
         node-version: [12.13.0]
@@ -18,7 +17,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+    - run: npm run dist
       env:
         CI: true
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}

@@ -1,9 +1,9 @@
 {
-  "name": "Timedoist",
-  "productName": "Timedoist",
+  "name": "Todotime",
+  "productName": "Todotime",
   "description": "Unofficial extension for todoist the handle task timeboxing.",
   "keywords": [
-    "todoist",
+    "todotime",
     "timeboxing",
     "tasks"
   ],
@@ -19,20 +19,15 @@
     "frontend:preferences:watch": "chokidar './app/frontend/src/**/*.elm' -c 'elm make app/frontend/src/Preferences.elm --output app/frontend/preferences.js'"
   },
   "build": {
-    "appId": "com.timedoist.app",
-    "dmg": {
-      "contents": [
-        {
-          "x": 110,
-          "y": 150
-        },
-        {
-          "x": 240,
-          "y": 150,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
+    "appId": "com.todotime.app",
+    "nodeVersion": "12.16.1",
+    "asar": true,
+    "directories": {
+      "buildResources": "buildResources"
+    },
+    "compression": "normal",
+    "mac": {
+      "target": "zip"
     }
   },
   "dependencies": {},

@@ -1,4 +1,5 @@
-// get dates in timestamp
+// TODO: write unit tests
+
 module.exports = function getDatesSinceFormat (from, date) {
   if (date === null) {
     return 'No sync...'
