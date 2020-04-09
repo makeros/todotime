@@ -1,8 +1,9 @@
 name: Release the Mac OS app
 
 on:
-  create:
+  push:
     tags:
+    - '*'
 
 jobs:
   release:
