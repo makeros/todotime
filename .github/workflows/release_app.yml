@@ -1,24 +1,24 @@
-name: Release the Mac OS app
-
-on:
-  create:
-    tags:
-    - '*'
-
-jobs:
-  release:
-    runs-on: macOS-latest
-    strategy:
-      matrix:
-        node-version: [12.13.0]
-    steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm ci
-    - run: npm run dist
-      env:
-        CI: true
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+# name: Release the Mac OS app
+#
+# on:
+#   release:
+#     types:
+#       - published
+#
+# jobs:
+#   release:
+#     runs-on: macOS-latest
+#     strategy:
+#       matrix:
+#         node-version: [12.13.0]
+#     steps:
+#     - uses: actions/checkout@v2
+#     - name: Use Node.js ${{ matrix.node-version }}
+#       uses: actions/setup-node@v1
+#       with:
+#         node-version: ${{ matrix.node-version }}
+#     - run: npm ci
+#     - run: npm run dist
+#       env:
+#         CI: true
+#         GH_TOKEN: ${{ secrets.GH_TOKEN }}

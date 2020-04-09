@@ -1,10 +1,14 @@
 {
-  plugins: [
+  "branches": ["master"],
+  "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
+    ["@semantic-release/exec", {
+      "prepareCmd": "npm --no-git-tag-version version ${nextRelease.version} && npm run dist"
+    }],
     [ "@semantic-release/github", {
       "assets": [
-        {"path": "dist/timedoist.dmg", "label": "Timedoist App"}
+        {"path": "dist/**/*.zip"}
       ]
     }]
   ]

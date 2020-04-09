@@ -16,6 +16,7 @@
     "test:unit": "jest ./app/src",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
+    "release-app": "npm run dist -- --publish",
     "frontend:preferences:watch": "chokidar './app/frontend/src/**/*.elm' -c 'elm make app/frontend/src/Preferences.elm --output app/frontend/preferences.js'"
   },
   "build": {

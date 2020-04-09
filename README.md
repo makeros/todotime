@@ -1,6 +1,6 @@
 # Todotime
 
----
+App for timeboxing you tasks from Todoist.
 
 ## Built with
 

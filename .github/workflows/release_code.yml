@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: macOS-latest
     strategy:
       matrix:
         node-version: [12.13.0]
@@ -17,7 +17,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npx semantic-release
+    - run: npm ci
+    - run: npx -p @semantic-release/exec -p semantic-release semantic-release
       env:
         CI: true
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
