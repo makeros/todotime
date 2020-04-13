@@ -2,6 +2,8 @@
 
 App for timeboxing you tasks from Todoist.
 
+![App Release](https://github.com/makeros/todotime/workflows/Release%20the%20code/badge.svg?branch=master&event=push)
+
 ## Built with
 
 * JavaScript

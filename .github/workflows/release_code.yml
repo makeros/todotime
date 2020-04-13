@@ -1,4 +1,4 @@
-name: Release the code
+name: App Release
 
 on:
   push:
