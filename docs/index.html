@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Todotime</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.4.0/dist/css/uikit.min.css" />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;600&display=swap');
+      body {
+        font-family: 'Source Sans Pro', sans-serif;
+        background: rgb(227,227,227);
+        background: linear-gradient(180deg, rgba(227,227,227,1) 0%, rgba(255,255,255,1) 100%);
+      }
+
+      h1 {
+        font-weight: 600;
+      }
+      .app-icon {
+        width: 75px;
+      }
+      .uk-button-primary {
+        background-color: #b33426;
+      }
+      .uk-button-primary:hover {
+        background-color: #0b1525;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="uk-container uk-padding uk-padding-small">
+
+      <nav class="" uk-navbar>
+        <div class="uk-navbar-center">
+
+            <div class="uk-navbar-center-left"></div>
+            <a class="uk-navbar-item uk-logo" href="/"><h1 class="uk-text-center">
+                <img class="app-icon" src="assets/todotime_app_icon_128.png"/>
+                <span>Todotime</span>
+              </h1>
+            </a>
+            <div class="uk-navbar-center-right"><div>
+                <ul class="uk-navbar-nav">
+                    <li><a href="https://github.com/makeros/todotime"><span uk-icon="github"></span></a></li>
+                </ul>
+            </div></div>
+
+        </div>
+    </nav>
+
+
+      <div class="uk-text-lead uk-text-center uk-margin">Control how much You can get done each day!</div>
+      <div class="uk-cover-container uk-height-medium">
+          <img src="assets/jumbo_todotime_cover.png" alt="" uk-cover>
+      </div>
+      <div class="uk-child-width-1-2@s uk-padding uk-padding-small" uk-grid>
+        <div>
+            <div class="uk-dark uk-background-muted uk-padding uk-text-center uk-height-medium">
+              <h3>Get latest Mac OS App</h3>
+              <a class="uk-button uk-button-primary uk-button-large" href="https://github.com/makeros/todotime/releases">
+                <span uk-icon="download"></span>
+                Download
+              </a>
+            </div>
+        </div>
+        <div>
+            <div class="uk-dark uk-background-muted uk-padding uk-height-medium">
+              <h3>Features</h3>
+              <ul class="uk-list uk-list-bullet">
+                <li>Timebox your tasks on todoist</li>
+                <li>Use custom labels to set the time</li>
+              </ul>
+            </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.4.0/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.4.0/dist/js/uikit-icons.min.js"></script>
+  </body>
+</html>
