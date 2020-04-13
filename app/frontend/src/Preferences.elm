@@ -160,7 +160,7 @@ updateTodoistLabel model value part =
 
 updateRefreshTimeInterval : PreferencesModel -> String -> PreferencesModel
 updateRefreshTimeInterval model value =
-    { model | refreshTimeInterval = Maybe.withDefault 0 (String.toFloat value) * 60000 }
+    { model | refreshTimeInterval = Basics.clamp 0 60 (Maybe.withDefault 0 (String.toFloat value)) * 60000 }
 
 
 
@@ -192,27 +192,30 @@ viewBody model =
         [ section [ class "uk-container uk-container-large" ]
             [ h1 [] [ text "Preferences" ]
             , Html.form [ class "uk-form-horizontal uk-margin-large" ]
-                [ div [ class "uk-margin" ]
+                [ h2 [] [ text "Todoist" ]
+                , div [ class "uk-margin" ]
                     [ label [ for "input-api-key", class "uk-form-label" ]
-                        [ text "Todoist API Key:" ]
+                        [ text "Token API:" ]
                     , div
                         [ class "uk-form-controls" ]
                         [ input [ id "input-api-key", class "uk-input uk-form-width-large", type_ "text", onInput OnApiKeyInputChange, value model.preferences.apiKey ] []
                         ]
                     ]
                 , div [ class "uk-margin" ]
-                    [ label [ for "btn-check-premium", class "uk-form-label" ] [ text "Todoist Premium check:" ]
+                    [ label [ for "btn-check-premium", class "uk-form-label" ] [ text "Premium Account check:" ]
                     , div []
                         [ viewCheckTodoisPremium model.preferences.isTodoistPremium model.todoistPremiumChecking ]
                     ]
                 , div [ class "uk-margin" ]
-                    [ label [ for "input-refresh-interval", class "uk-form-label" ] [ text "Task refresh time:" ]
+                    [ label [ for "input-refresh-interval", class "uk-form-label" ] [ text "Refresh interval time:" ]
                     , div [ class "uk-form-controls" ]
                         [ input [ id "input-refresh-interval", class "uk-input uk-form-width-small", type_ "number", onInput OnRefreshIntervalInputChange, value (String.fromFloat (model.preferences.refreshTimeInterval / 60000)) ] []
+                        , viewRefreshIntervalPostfix model.preferences.refreshTimeInterval
+                        , div [ class "uk-text-muted" ] [ text "0 - manual; 60 - max;" ]
                         ]
                     ]
                 , div [ class "uk-margin" ]
-                    [ label [ for "input-todoist-label", class "uk-form-label" ] [ text "Todoist label:" ]
+                    [ label [ for "input-todoist-label", class "uk-form-label" ] [ text "Task label:" ]
                     , viewTodolistLabel model.preferences.todoistLabel
                     ]
                 ]
@@ -232,6 +235,15 @@ viewTodolistLabel label =
         , input [ id "input-todoist-label", class "uk-input uk-form-width-small", type_ "text", onInput OnTodoistLabelSuffixInputChange, value (Maybe.withDefault "" (Array.get 1 (Array.fromList (String.split "<minutes>" label)))) ] []
         , div [ class "uk-text-muted" ] [ text "Todoist label example: ", span [ class "uk-text-success" ] [ text "@", text (String.replace "<minutes>" "120" label) ] ]
         ]
+
+
+viewRefreshIntervalPostfix : Float -> Html Msg
+viewRefreshIntervalPostfix refreshTimeInterval =
+    if refreshTimeInterval == 0 then
+        text " Automatic refresh disabled"
+
+    else
+        text " minutes"
 
 
 viewCheckTodoisPremium : Bool -> Bool -> Html Msg

@@ -5231,16 +5231,24 @@ var $author$project$Preferences$updateApiKey = F2(
 			model,
 			{apiKey: value});
 	});
+var $elm$core$Basics$clamp = F3(
+	function (low, high, number) {
+		return (_Utils_cmp(number, low) < 0) ? low : ((_Utils_cmp(number, high) > 0) ? high : number);
+	});
 var $elm$core$String$toFloat = _String_toFloat;
 var $author$project$Preferences$updateRefreshTimeInterval = F2(
 	function (model, value) {
 		return _Utils_update(
 			model,
 			{
-				refreshTimeInterval: A2(
-					$elm$core$Maybe$withDefault,
+				refreshTimeInterval: A3(
+					$elm$core$Basics$clamp,
 					0,
-					$elm$core$String$toFloat(value)) * 60000
+					60,
+					A2(
+						$elm$core$Maybe$withDefault,
+						0,
+						$elm$core$String$toFloat(value))) * 60000
 			});
 	});
 var $elm$core$Array$fromListHelp = F3(
@@ -8254,6 +8262,7 @@ var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$Attributes$for = $elm$html$Html$Attributes$stringProperty('htmlFor');
 var $elm$html$Html$form = _VirtualDom_node('form');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$label = _VirtualDom_node('label');
@@ -8408,6 +8417,9 @@ var $author$project$Preferences$viewCheckTodoisPremium = F2(
 						]))
 				]));
 	});
+var $author$project$Preferences$viewRefreshIntervalPostfix = function (refreshTimeInterval) {
+	return (!refreshTimeInterval) ? $elm$html$Html$text(' Automatic refresh disabled') : $elm$html$Html$text(' minutes');
+};
 var $author$project$Preferences$OnTodoistLabelPrefixInputChange = function (a) {
 	return {$: 'OnTodoistLabelPrefixInputChange', a: a};
 };
@@ -8559,6 +8571,13 @@ var $author$project$Preferences$viewBody = function (model) {
 						_List_fromArray(
 							[
 								A2(
+								$elm$html$Html$h2,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Todoist')
+									])),
+								A2(
 								$elm$html$Html$div,
 								_List_fromArray(
 									[
@@ -8575,7 +8594,7 @@ var $author$project$Preferences$viewBody = function (model) {
 											]),
 										_List_fromArray(
 											[
-												$elm$html$Html$text('Todoist API Key:')
+												$elm$html$Html$text('Token API:')
 											])),
 										A2(
 										$elm$html$Html$div,
@@ -8615,7 +8634,7 @@ var $author$project$Preferences$viewBody = function (model) {
 											]),
 										_List_fromArray(
 											[
-												$elm$html$Html$text('Todoist Premium check:')
+												$elm$html$Html$text('Premium Account check:')
 											])),
 										A2(
 										$elm$html$Html$div,
@@ -8642,7 +8661,7 @@ var $author$project$Preferences$viewBody = function (model) {
 											]),
 										_List_fromArray(
 											[
-												$elm$html$Html$text('Task refresh time:')
+												$elm$html$Html$text('Refresh interval time:')
 											])),
 										A2(
 										$elm$html$Html$div,
@@ -8663,7 +8682,18 @@ var $author$project$Preferences$viewBody = function (model) {
 														$elm$html$Html$Attributes$value(
 														$elm$core$String$fromFloat(model.preferences.refreshTimeInterval / 60000))
 													]),
-												_List_Nil)
+												_List_Nil),
+												$author$project$Preferences$viewRefreshIntervalPostfix(model.preferences.refreshTimeInterval),
+												A2(
+												$elm$html$Html$div,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('uk-text-muted')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('0 - manual; 60 - max;')
+													]))
 											]))
 									])),
 								A2(
@@ -8683,7 +8713,7 @@ var $author$project$Preferences$viewBody = function (model) {
 											]),
 										_List_fromArray(
 											[
-												$elm$html$Html$text('Todoist label:')
+												$elm$html$Html$text('Task label:')
 											])),
 										$author$project$Preferences$viewTodolistLabel(model.preferences.todoistLabel)
 									]))

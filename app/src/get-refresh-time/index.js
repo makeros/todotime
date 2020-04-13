@@ -1,3 +1,4 @@
+// 0 - no automatic refresh
 module.exports = function ({ logger, fetchTasksTime }) {
   return function getRefreshTime (cb, timers) {
     return function loop (timeInterval, fromLoop = false) {
@@ -18,6 +19,10 @@ module.exports = function ({ logger, fetchTasksTime }) {
       logger.log('started interval', timeInterval)
       if (!fromLoop) {
         refetch(true)
+      }
+
+      if (timeInterval === 0) {
+        return clearInterval(timers.refreshTimeLoopHandler)
       }
       timers.refreshTimeLoopHandler = setTimeout(refetch, timeInterval)
     }
