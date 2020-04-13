@@ -83,7 +83,7 @@ function createPreferencesWindow () {
   }
   preferencesWindow = new BrowserWindow({
     width: 960,
-    height: 550,
+    height: 600,
     webPreferences: {
       nodeIntegration: true
     }

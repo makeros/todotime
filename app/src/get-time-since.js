@@ -24,7 +24,7 @@ module.exports = function getDatesSinceFormat (from, date) {
   // format the date
   // add leading zeroes to single-digit day/month/hours/minutes
   // BUG: this has to be tested because the time is in timestamp
-  let d = date
+  let d = new Date(date)
   d = [
     '0' + d.getDate(),
     '0' + (d.getMonth() + 1),
