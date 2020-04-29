@@ -47,8 +47,10 @@ main =
 init : Maybe PreferencesModel -> ( Model, Cmd Msg )
 init maybePreferencesModel =
     ( { preferences = Maybe.withDefault emptyPreferencesModel maybePreferencesModel
+      , lastSavedPreferences = Maybe.withDefault emptyPreferencesModel maybePreferencesModel
       , saving = False
       , todoistPremiumChecking = False
+      , preferencesAreDifferent = False
       }
     , Cmd.none
     )
@@ -69,8 +71,10 @@ subscriptions model =
 
 type alias Model =
     { preferences : PreferencesModel
+    , lastSavedPreferences : PreferencesModel
     , saving : Bool
     , todoistPremiumChecking : Bool
+    , preferencesAreDifferent : Bool
     }
 
 
@@ -110,34 +114,42 @@ type Msg
     | TodoistPremiumChanged Bool
     | OnTodoistPremiumCheckClick
     | OnWindowCLoseClick
+    | UpdateLastSavedPreferences PreferencesModel
+    | ComparePreferencesModels
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         OnPreferencesSave ->
-            ( model, userSettingsSave model.preferences )
+            ( model, Cmd.batch [ userSettingsSave model.preferences, Task.succeed (UpdateLastSavedPreferences model.preferences) |> Task.perform identity ] )
 
         OnApiKeyInputChange value ->
             ( { model | preferences = updateApiKey model.preferences value }, Task.succeed OnTodoistPremiumCheckClick |> Task.perform identity )
 
         OnRefreshIntervalInputChange value ->
-            ( { model | preferences = updateRefreshTimeInterval model.preferences value }, Cmd.none )
+            ( { model | preferences = updateRefreshTimeInterval model.preferences value }, Task.succeed ComparePreferencesModels |> Task.perform identity )
 
         OnTodoistLabelPrefixInputChange value ->
-            ( { model | preferences = updateTodoistLabel model.preferences value 0 }, Cmd.none )
+            ( { model | preferences = updateTodoistLabel model.preferences value 0 }, Task.succeed ComparePreferencesModels |> Task.perform identity )
 
         OnTodoistLabelSuffixInputChange value ->
-            ( { model | preferences = updateTodoistLabel model.preferences value 1 }, Cmd.none )
+            ( { model | preferences = updateTodoistLabel model.preferences value 1 }, Task.succeed ComparePreferencesModels |> Task.perform identity )
 
         TodoistPremiumChanged isPremium ->
-            ( { model | preferences = updateTodoistPremium model.preferences isPremium, todoistPremiumChecking = False }, Cmd.none )
+            ( { model | preferences = updateTodoistPremium model.preferences isPremium, todoistPremiumChecking = False }, Task.succeed ComparePreferencesModels |> Task.perform identity )
 
         OnTodoistPremiumCheckClick ->
             ( { model | todoistPremiumChecking = True }, checkTodoistPremium model.preferences.apiKey )
 
         OnWindowCLoseClick ->
             ( model, closeWindow () )
+
+        UpdateLastSavedPreferences latestModel ->
+            ( { model | lastSavedPreferences = latestModel }, Cmd.none )
+
+        ComparePreferencesModels ->
+            ( { model | preferencesAreDifferent = arePreferencesDifferent model.lastSavedPreferences model.preferences }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -161,6 +173,11 @@ updateTodoistLabel model value part =
 updateRefreshTimeInterval : PreferencesModel -> String -> PreferencesModel
 updateRefreshTimeInterval model value =
     { model | refreshTimeInterval = Basics.clamp 0 60 (Maybe.withDefault 0 (String.toFloat value)) * 60000 }
+
+
+arePreferencesDifferent : PreferencesModel -> PreferencesModel -> Bool
+arePreferencesDifferent actualModel newModel =
+    not (actualModel == newModel)
 
 
 
@@ -191,7 +208,20 @@ viewBody model =
         [ section [ class "uk-container uk-container-large" ]
             [ h1 [] [ text "Preferences" ]
             , Html.form [ class "uk-form-horizontal uk-margin-large" ]
-                [ h2 [] [ text "Todoist" ]
+                [ div
+                    [ class "uk-margin uk-controls uk-background-default" ]
+                    [ button [ class "uk-button uk-button-default uk-width-1-2", onClick OnWindowCLoseClick ] [ text "Cancel" ]
+                    , button
+                        [ classList
+                            [ ( "uk-button-primary", model.preferencesAreDifferent == False )
+                            , ( "uk-button-secondary", model.preferencesAreDifferent == True )
+                            ]
+                        , class "uk-button uk-width-1-2"
+                        , onClick OnPreferencesSave
+                        ]
+                        [ text "Save Preferences" ]
+                    ]
+                , h2 [] [ text "Todoist" ]
                 , div [ class "uk-margin" ]
                     [ label [ for "input-api-key", class "uk-form-label" ]
                         [ text "Token API:" ]
@@ -217,10 +247,6 @@ viewBody model =
                     [ label [ for "input-todoist-label", class "uk-form-label" ] [ text "Task label:" ]
                     , viewTodolistLabel model.preferences.todoistLabel
                     ]
-                ]
-            , div [ class "uk-margin uk-controls" ]
-                [ button [ class "uk-button uk-button-default uk-width-1-2", onClick OnWindowCLoseClick ] [ text "Cancel" ]
-                , button [ class "uk-button uk-button-primary uk-width-1-2", onClick OnPreferencesSave ] [ text "Save Preferences" ]
                 ]
             ]
         ]
