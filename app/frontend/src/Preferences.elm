@@ -169,14 +169,13 @@ updateRefreshTimeInterval model value =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "Timedoist • Preferences"
+    { title = "Todotime • Preferences"
     , body =
         [ toUnstyled
             (global
                 [ body
                     [ margin (px 0)
                     , backgroundColor (hex "f9f9f9")
-                    , height (pct 100)
                     ]
                 , html [ height (pct 100) ]
                 ]
