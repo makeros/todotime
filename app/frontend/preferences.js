@@ -8766,9 +8766,7 @@ var $author$project$Preferences$view = function (model) {
 									$rtfeldman$elm_css$Css$margin(
 									$rtfeldman$elm_css$Css$px(0)),
 									$rtfeldman$elm_css$Css$backgroundColor(
-									$rtfeldman$elm_css$Css$hex('f9f9f9')),
-									$rtfeldman$elm_css$Css$height(
-									$rtfeldman$elm_css$Css$pct(100))
+									$rtfeldman$elm_css$Css$hex('f9f9f9'))
 								])),
 							$rtfeldman$elm_css$Css$Global$html(
 							_List_fromArray(
@@ -8779,7 +8777,7 @@ var $author$project$Preferences$view = function (model) {
 						]))),
 				$author$project$Preferences$viewBody(model)
 			]),
-		title: 'Timedoist • Preferences'
+		title: 'Todotime • Preferences'
 	};
 };
 var $author$project$Preferences$main = $elm$browser$Browser$document(
