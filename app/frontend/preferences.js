@@ -5200,7 +5200,9 @@ var $elm$core$Maybe$withDefault = F2(
 var $author$project$Preferences$init = function (maybePreferencesModel) {
 	return _Utils_Tuple2(
 		{
+			lastSavedPreferences: A2($elm$core$Maybe$withDefault, $author$project$Preferences$emptyPreferencesModel, maybePreferencesModel),
 			preferences: A2($elm$core$Maybe$withDefault, $author$project$Preferences$emptyPreferencesModel, maybePreferencesModel),
+			preferencesAreDifferent: false,
 			saving: false,
 			todoistPremiumChecking: false
 		},
@@ -5216,7 +5218,16 @@ var $author$project$Preferences$checkTodoistPremiumCallback = _Platform_incoming
 var $author$project$Preferences$subscriptions = function (model) {
 	return $author$project$Preferences$checkTodoistPremiumCallback($author$project$Preferences$TodoistPremiumChanged);
 };
+var $author$project$Preferences$ComparePreferencesModels = {$: 'ComparePreferencesModels'};
 var $author$project$Preferences$OnTodoistPremiumCheckClick = {$: 'OnTodoistPremiumCheckClick'};
+var $author$project$Preferences$UpdateLastSavedPreferences = function (a) {
+	return {$: 'UpdateLastSavedPreferences', a: a};
+};
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Preferences$arePreferencesDifferent = F2(
+	function (actualModel, newModel) {
+		return !_Utils_eq(actualModel, newModel);
+	});
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Preferences$checkTodoistPremium = _Platform_outgoingPort('checkTodoistPremium', $elm$json$Json$Encode$string);
 var $elm$json$Json$Encode$null = _Json_encodeNull;
@@ -5402,7 +5413,16 @@ var $author$project$Preferences$update = F2(
 			case 'OnPreferencesSave':
 				return _Utils_Tuple2(
 					model,
-					$author$project$Preferences$userSettingsSave(model.preferences));
+					$elm$core$Platform$Cmd$batch(
+						_List_fromArray(
+							[
+								$author$project$Preferences$userSettingsSave(model.preferences),
+								A2(
+								$elm$core$Task$perform,
+								$elm$core$Basics$identity,
+								$elm$core$Task$succeed(
+									$author$project$Preferences$UpdateLastSavedPreferences(model.preferences)))
+							])));
 			case 'OnApiKeyInputChange':
 				var value = msg.a;
 				return _Utils_Tuple2(
@@ -5423,7 +5443,10 @@ var $author$project$Preferences$update = F2(
 						{
 							preferences: A2($author$project$Preferences$updateRefreshTimeInterval, model.preferences, value)
 						}),
-					$elm$core$Platform$Cmd$none);
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$identity,
+						$elm$core$Task$succeed($author$project$Preferences$ComparePreferencesModels)));
 			case 'OnTodoistLabelPrefixInputChange':
 				var value = msg.a;
 				return _Utils_Tuple2(
@@ -5432,7 +5455,10 @@ var $author$project$Preferences$update = F2(
 						{
 							preferences: A3($author$project$Preferences$updateTodoistLabel, model.preferences, value, 0)
 						}),
-					$elm$core$Platform$Cmd$none);
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$identity,
+						$elm$core$Task$succeed($author$project$Preferences$ComparePreferencesModels)));
 			case 'OnTodoistLabelSuffixInputChange':
 				var value = msg.a;
 				return _Utils_Tuple2(
@@ -5441,7 +5467,10 @@ var $author$project$Preferences$update = F2(
 						{
 							preferences: A3($author$project$Preferences$updateTodoistLabel, model.preferences, value, 1)
 						}),
-					$elm$core$Platform$Cmd$none);
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$identity,
+						$elm$core$Task$succeed($author$project$Preferences$ComparePreferencesModels)));
 			case 'TodoistPremiumChanged':
 				var isPremium = msg.a;
 				return _Utils_Tuple2(
@@ -5451,7 +5480,10 @@ var $author$project$Preferences$update = F2(
 							preferences: A2($author$project$Preferences$updateTodoistPremium, model.preferences, isPremium),
 							todoistPremiumChecking: false
 						}),
-					$elm$core$Platform$Cmd$none);
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$identity,
+						$elm$core$Task$succeed($author$project$Preferences$ComparePreferencesModels)));
 			case 'OnTodoistPremiumCheckClick':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -5462,6 +5494,21 @@ var $author$project$Preferences$update = F2(
 				return _Utils_Tuple2(
 					model,
 					$author$project$Preferences$closeWindow(_Utils_Tuple0));
+			case 'UpdateLastSavedPreferences':
+				var latestModel = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{lastSavedPreferences: latestModel}),
+					$elm$core$Platform$Cmd$none);
+			case 'ComparePreferencesModels':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							preferencesAreDifferent: A2($author$project$Preferences$arePreferencesDifferent, model.lastSavedPreferences, model.preferences)
+						}),
+					$elm$core$Platform$Cmd$none);
 			default:
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 		}
@@ -5538,7 +5585,6 @@ var $elm$core$Basics$composeL = F3(
 		return g(
 			f(x));
 	});
-var $elm$core$Basics$not = _Basics_not;
 var $elm$core$List$all = F2(
 	function (isOkay, list) {
 		return !A2(
@@ -8258,6 +8304,20 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 			$elm$json$Json$Encode$string(string));
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$html$Html$Attributes$classList = function (classes) {
+	return $elm$html$Html$Attributes$class(
+		A2(
+			$elm$core$String$join,
+			' ',
+			A2(
+				$elm$core$List$map,
+				$elm$core$Tuple$first,
+				A2($elm$core$List$filter, $elm$core$Tuple$second, classes))));
+};
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$Attributes$for = $elm$html$Html$Attributes$stringProperty('htmlFor');
 var $elm$html$Html$form = _VirtualDom_node('form');
@@ -8326,20 +8386,6 @@ var $elm$virtual_dom$VirtualDom$attribute = F2(
 			_VirtualDom_noJavaScriptOrHtmlUri(value));
 	});
 var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
-var $elm$html$Html$Attributes$classList = function (classes) {
-	return $elm$html$Html$Attributes$class(
-		A2(
-			$elm$core$String$join,
-			' ',
-			A2(
-				$elm$core$List$map,
-				$elm$core$Tuple$first,
-				A2($elm$core$List$filter, $elm$core$Tuple$second, classes))));
-};
 var $elm$html$Html$Attributes$boolProperty = F2(
 	function (key, bool) {
 		return A2(
@@ -8571,6 +8617,43 @@ var $author$project$Preferences$viewBody = function (model) {
 						_List_fromArray(
 							[
 								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('uk-margin uk-controls uk-background-default')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$button,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('uk-button uk-button-default uk-width-1-2'),
+												$elm$html$Html$Events$onClick($author$project$Preferences$OnWindowCLoseClick)
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Cancel')
+											])),
+										A2(
+										$elm$html$Html$button,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$classList(
+												_List_fromArray(
+													[
+														_Utils_Tuple2('uk-button-primary', !model.preferencesAreDifferent),
+														_Utils_Tuple2('uk-button-secondary', model.preferencesAreDifferent)
+													])),
+												$elm$html$Html$Attributes$class('uk-button uk-width-1-2'),
+												$elm$html$Html$Events$onClick($author$project$Preferences$OnPreferencesSave)
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Save Preferences')
+											]))
+									])),
+								A2(
 								$elm$html$Html$h2,
 								_List_Nil,
 								_List_fromArray(
@@ -8716,37 +8799,6 @@ var $author$project$Preferences$viewBody = function (model) {
 												$elm$html$Html$text('Task label:')
 											])),
 										$author$project$Preferences$viewTodolistLabel(model.preferences.todoistLabel)
-									]))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('uk-margin uk-controls')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$button,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('uk-button uk-button-default uk-width-1-2'),
-										$elm$html$Html$Events$onClick($author$project$Preferences$OnWindowCLoseClick)
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Cancel')
-									])),
-								A2(
-								$elm$html$Html$button,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('uk-button uk-button-primary uk-width-1-2'),
-										$elm$html$Html$Events$onClick($author$project$Preferences$OnPreferencesSave)
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Save Preferences')
 									]))
 							]))
 					]))

@@ -57,7 +57,6 @@ function getValueFromLabelName (name, labelPrefix) {
   return name.split(labelPrefix)[1]
 }
 
-
 function attachTimeLabelsToTask (labels) {
   return (task) => {
     const labelsForTask = labels
