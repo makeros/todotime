@@ -15,7 +15,7 @@
     "test": "npm run test:unit",
     "test:unit": "jest ./app/src",
     "pack": "electron-builder --dir",
-    "dist": "frontend:styles:build && npm run frontend:preferences:build && electron-builder",
+    "dist": "npm run frontend:styles:build && npm run frontend:preferences:build && electron-builder",
     "frontend:preferences:build": "elm make app/frontend/src/Preferences.elm --output app/frontend/preferences.js",
     "frontend:preferences:watch": "chokidar './app/frontend/src/**/*.elm' -c 'npm run frontend:preferences:build'",
     "frontend:styles:build": "lessc app/frontend/styles/uikit.theme.less app/assets/uikit.css && cp node_modules/uikit/dist/js/*.js app/assets/"
