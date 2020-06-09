@@ -1,12 +1,15 @@
-const { app, Tray, Menu, BrowserWindow } = require('electron')
+const { app, Tray, BrowserWindow } = require('electron')
 const path = require('path')
-const getTimeFromTasks = require('./src/get-time-from-tasks')
-const preferencesStore = require('./src/store/preferences')
+const getTimeInMinutes = require('./src/get-time-in-minutes')
+const getTasksWithTimeLabels = require('./src/todoist/get-tasks-with-time-labels')
+const settingsStore = require('./src/store/settings')
 const appStore = require('./src/store/app')
 const getTextForTray = require('./src/get-text-for-tray')
 const getTextFromMinutes = require('./src/get-text-from-minutes')
-const getTodoistPremiumStatus = require('./src/get-todoist-premium-status')
-const getTimeSince = require('./src/get-time-since')
+const getTodoistPremiumStatus = require('./src/todoist/get-todoist-premium-status')
+const fetchTasksAndLabels = require('./src/todoist/fetch-tasks-and-labels')
+const dbInMemory = require('./src/db-in-memory')(['tasksList'])
+const { getContextMenu } = require('./src/context-menu')(appStore)
 const trayIcon = require('./src/tray-icon')
 const { ipcMain } = require('electron')
 const logger = {
@@ -16,9 +19,11 @@ const logger = {
 }
 
 const getRefreshTime = require('./src/get-refresh-time')({ logger, fetchTasksTime })
-
-let tray
-let preferencesWindow = null
+const appGlobals = {
+  tray: null,
+  preferencesWindow: null,
+  tasksWindow: null
+}
 
 const timers = {
   refreshTimeLoopHandler: null
@@ -35,6 +40,10 @@ app.on('window-all-closed', function () {
   }
 })
 
+ipcMain.on('tasks:get-list', function (event) {
+  const tasks = dbInMemory.getTable('tasksList') || []
+  event.reply('tasks:get-list:reply', { data: tasks })
+})
 ipcMain.on('user-settings:save', onUserSettingsSave)
 ipcMain.on('user-settings:get', onUserSettingsGet)
 ipcMain.on('user-settings:check-todoist-premium', async function (event, apiKey) {
@@ -44,44 +53,45 @@ ipcMain.on('user-settings:check-todoist-premium', async function (event, apiKey)
 
 function createTray (app) {
   return async function () {
-    tray = new Tray(trayIcon.getNormalIcon())
+    appGlobals.tray = new Tray(trayIcon.getNormalIcon())
 
-    tray.setTitle('')
+    appGlobals.tray.setTitle('')
 
-    tray.on('click', () => {
-      const menu = getContextMenu(app, tray, Menu, {
-        checkNow: () => refreshTime(preferencesStore.get('refreshTimeInterval'))
+    appGlobals.tray.on('click', () => {
+      const menu = getContextMenu(app, appGlobals.tray, {
+        checkNow: () => refreshTime(settingsStore.get('refreshTimeInterval')),
+        createPreferencesWindow: () => createPreferencesWindow(),
+        createTasksWindow: () => createTasksWindow()
       })
-      tray.popUpContextMenu(menu)
+      appGlobals.tray.popUpContextMenu(menu)
     })
 
     const refreshTime = getRefreshTime((err, value) => {
       if (err) {
-        tray.setImage(trayIcon.getWarningIcon())
+        appGlobals.tray.setImage(trayIcon.getWarningIcon())
       } else {
-        tray.setImage(trayIcon.getNormalIcon())
-        tray.setTitle(getTextForTray(getTextFromMinutes, value))
+        appGlobals.tray.setImage(trayIcon.getNormalIcon())
+        appGlobals.tray.setTitle(getTextForTray(getTextFromMinutes, value))
         appStore.set('lastSync', new Date().getTime())
       }
     }, timers)
 
-    refreshTime(preferencesStore.get('refreshTimeInterval'))
+    refreshTime(settingsStore.get('refreshTimeInterval'))
 
-    preferencesStore.on('changed-data', (newData) => {
-      const newDataKeys = Object.keys(newData)
-      if (newDataKeys.includes('refreshTimeInterval') || newDataKeys.includes('apiKey') || newDataKeys.includes('todoistLabel')) {
-        refreshTime(preferencesStore.get('refreshTimeInterval'))
+    settingsStore.on('changed-data', (newData) => {
+      if (shouldRefreshTasksTime(Object.keys(newData))) {
+        refreshTime(settingsStore.get('refreshTimeInterval'))
       }
     })
   }
 }
 
 function createPreferencesWindow () {
-  if (preferencesWindow !== null) {
-    preferencesWindow.focus()
+  if (appGlobals.preferencesWindow !== null) {
+    appGlobals.preferencesWindow.focus()
     return
   }
-  preferencesWindow = new BrowserWindow({
+  appGlobals.preferencesWindow = new BrowserWindow({
     width: 960,
     height: 600,
     webPreferences: {
@@ -89,74 +99,70 @@ function createPreferencesWindow () {
     }
   })
 
-  preferencesWindow.loadFile(path.join(__dirname, 'frontend/preferences.html'))
+  appGlobals.preferencesWindow.loadFile(path.join(__dirname, 'frontend/preferences.html'))
 
-  preferencesWindow.on('closed', function () {
-    preferencesWindow = null
+  appGlobals.preferencesWindow.on('closed', function () {
+    appGlobals.preferencesWindow = null
   })
 }
 
+function createTasksWindow () {
+  if (appGlobals.tasksWindow !== null) {
+    appGlobals.tasksWindow.focus()
+    return
+  }
+  appGlobals.tasksWindow = new BrowserWindow({
+    width: 960,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+
+  appGlobals.tasksWindow.loadFile(path.join(__dirname, 'frontend/tasks.html'))
+
+  appGlobals.tasksWindow.on('closed', function () {
+    appGlobals.tasksWindow = null
+  })
+}
 async function fetchTasksTime () {
   try {
-    const hours = await getTimeFromTasks({
-      authKey: preferencesStore.get('apiKey'),
-      labelPrefix: 't-',
-      todoistLabel: preferencesStore.get('todoistLabel')
+    const [fetchedTasks, fetchedLabels] = await fetchTasksAndLabels({
+      authKey: settingsStore.get('apiKey')
     })
-    return hours
+
+    const tasksWithTime = getTasksWithTimeLabels([fetchedTasks, fetchedLabels], {
+      todoistLabel: settingsStore.get('todoistLabel')
+    })
+
+    const tasksListDB = dbInMemory.getTable('tasksList')
+    tasksListDB.clear()
+    tasksWithTime.forEach(task => {
+      if (task.todotime.labels.length > 0) tasksListDB.add(task)
+    })
+
+    return getTimeInMinutes(tasksWithTime)
   } catch (e) {
-    console.error('Cannot fetch hours.', e)
+    console.error('Cannot fetch tasks from todoist.', e)
     throw e
   }
 }
 
 function onUserSettingsSave (event, payload) {
-  savePayloadToStore(payload)
+  saveSettingsToStore(payload)
   event.reply('user-settings:save:reply')
 }
 
 function onUserSettingsGet (event) {
-  event.reply('user-settings:get:reply', { ...preferencesStore.data })
+  event.reply('user-settings:get:reply', { ...settingsStore.data })
 }
 
-function savePayloadToStore (payload) {
-  preferencesStore.set(payload)
+function saveSettingsToStore (payload) {
+  settingsStore.set(payload)
 }
 
-function getContextMenu (app, tray, menu, actions) {
-  const lastSync = getTimeSince(new Date().getTime(), appStore.get('lastSync'))
-  return menu.buildFromTemplate([
-    {
-      id: 'syncTime',
-      label: 'Last sync: ' + lastSync,
-      type: 'normal',
-      enabled: false,
-      click: () => {}
-    },
-    { type: 'separator' },
-    {
-      label: 'Check now!',
-      type: 'normal',
-      async click () {
-        actions.checkNow()
-      }
-    },
-    {
-      label: 'Preferences',
-      type: 'normal',
-      click () {
-        createPreferencesWindow()
-      }
-    },
-    { type: 'separator' },
-    {
-      type: 'normal',
-      role: 'about'
-    },
-    {
-      label: 'Quit',
-      type: 'normal',
-      role: 'quit'
-    }
-  ])
+function shouldRefreshTasksTime (newDataKeys) {
+  return newDataKeys.includes('refreshTimeInterval') ||
+    newDataKeys.includes('apiKey') ||
+    newDataKeys.includes('todoistLabel')
 }

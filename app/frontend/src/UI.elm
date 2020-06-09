@@ -17,7 +17,8 @@ theme =
 
 btnSave : List (Attribute msg) -> List (Html msg) -> Html msg
 btnSave =
-    button [ class "uk-button uk-button-primary" ]
+    styled button
+        [ className "uk-button uk-button-primary" ]
 
 
 inputField : List (Attribute msg) -> List (Html msg) -> Html msg
