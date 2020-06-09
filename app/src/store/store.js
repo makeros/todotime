@@ -3,6 +3,8 @@ const path = require('path')
 const fs = require('fs')
 const EventEmitter = require('events')
 
+// look for the files in : ~/Library/ApplicationSupport/Todotime
+
 class Store extends EventEmitter {
   constructor (opts) {
     super()
