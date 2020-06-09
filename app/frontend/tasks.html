@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="../assets/uikit.css" />
+
+    <!-- UIkit JS -->
+    <script src="../assets/uikit.min.js"></script>
+    <script src="../assets/uikit-icons.min.js"></script>
+  </head>
+  <body>
+    <div class="uk-container">
+      <h1>Tasks list</h1>
+
+      <table class="uk-table uk-table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Task title</th>
+                <th>Time label</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+    <script type="text/javascript">
+      const renderer = require('./../renderer.js')
+      const tableBody = document.querySelector("#table-body")
+      renderer.getTasksList(function (err, payload) {
+        let tbody = ''
+        payload.data.forEach(item => {
+          tbody += `<tr><td>${item.id}</td><td>${item.content}</td><td>${item.todotime.labels.map(i => i.name).join(',')}</td></tr>`
+        })
+
+        tableBody.innerHTML = tbody
+      })
+
+    </script>
+  </body>
+</html>
