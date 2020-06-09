@@ -6,6 +6,7 @@ module.exports = new Store({
     apiKey: '',
     refreshTimeInterval: 1000 * 60 * 60,
     todoistLabel: 't-<minutes>',
-    isTodoistPremium: true
+    isTodoistPremium: true,
+    timeDisplay: 'minutes1'
   }
 })

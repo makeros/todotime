@@ -5,7 +5,8 @@ const getTasksWithTimeLabels = require('./src/todoist/get-tasks-with-time-labels
 const settingsStore = require('./src/store/settings')
 const appStore = require('./src/store/app')
 const getTextForTray = require('./src/get-text-for-tray')
-const getTextFromMinutes = require('./src/get-text-from-minutes')
+const timeAsDefault = require('./src/time-as-default')
+const timeAsMinutes1 = require('./src/time-as-minutes1')
 const getTodoistPremiumStatus = require('./src/todoist/get-todoist-premium-status')
 const fetchTasksAndLabels = require('./src/todoist/fetch-tasks-and-labels')
 const dbInMemory = require('./src/db-in-memory')(['tasksList'])
@@ -67,11 +68,12 @@ function createTray (app) {
     })
 
     const refreshTime = getRefreshTime((err, value) => {
+      const timeToDisplay = settingsStore.get('timeDisplay') === 'minutes1' ? timeAsMinutes1 : timeAsDefault
       if (err) {
         appGlobals.tray.setImage(trayIcon.getWarningIcon())
       } else {
         appGlobals.tray.setImage(trayIcon.getNormalIcon())
-        appGlobals.tray.setTitle(getTextForTray(getTextFromMinutes, value))
+        appGlobals.tray.setTitle(getTextForTray(timeToDisplay, value))
         appStore.set('lastSync', new Date().getTime())
       }
     }, timers)

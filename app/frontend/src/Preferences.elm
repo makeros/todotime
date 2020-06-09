@@ -6,10 +6,11 @@ port module Preferences exposing (..)
 import Array
 import Browser
 import Browser.Dom as Dom
-import Css exposing (..)
+import Css exposing (backgroundColor, height, hex, margin, pct, px)
 import Css.Global exposing (body, global, html)
+import Debug
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, classList, disabled, for, id, type_, value)
+import Html.Attributes exposing (attribute, checked, class, classList, for, id, name, type_, value)
 import Html.Events exposing (..)
 import Html.Styled exposing (toUnstyled)
 import Json.Decode as JD
@@ -88,6 +89,7 @@ type alias PreferencesModel =
     , refreshTimeInterval : Float
     , todoistLabel : String
     , isTodoistPremium : Bool
+    , timeDisplay : String
     }
 
 
@@ -97,6 +99,7 @@ emptyPreferencesModel =
     , refreshTimeInterval = 0
     , todoistLabel = ""
     , isTodoistPremium = False
+    , timeDisplay = "default"
     }
 
 
@@ -110,6 +113,7 @@ type Msg
     | OnRefreshIntervalInputChange String
     | OnTodoistLabelPrefixInputChange String
     | OnTodoistLabelSuffixInputChange String
+    | OnTimeDisplayChange String
     | OnPreferencesSave
     | TodoistPremiumChanged Bool
     | OnTodoistPremiumCheckClick
@@ -120,6 +124,10 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        actualPreferences =
+            model.preferences
+    in
     case msg of
         OnPreferencesSave ->
             ( model, Cmd.batch [ userSettingsSave model.preferences, Task.succeed (UpdateLastSavedPreferences model.preferences) |> Task.perform identity ] )
@@ -150,6 +158,9 @@ update msg model =
 
         ComparePreferencesModels ->
             ( { model | preferencesAreDifferent = arePreferencesDifferent model.lastSavedPreferences model.preferences }, Cmd.none )
+
+        OnTimeDisplayChange timeDisplay ->
+            ( { model | preferences = { actualPreferences | timeDisplay = timeDisplay } }, Task.succeed ComparePreferencesModels |> Task.perform identity )
 
         NoOp ->
             ( model, Cmd.none )
@@ -220,6 +231,42 @@ viewBody model =
                         , onClick OnPreferencesSave
                         ]
                         [ text "Save Preferences" ]
+                    ]
+                , h2 [] [ text "Application settings" ]
+                , div [ class "uk-margin" ]
+                    [ label [ for "radio-time-display", class "uk-form-label" ]
+                        [ text "Tray time display:" ]
+                    , div
+                        [ class "uk-form-controls uk-grid", id "radio-time-display" ]
+                        [ label [ for "time-display-default" ]
+                            [ input
+                                [ id "time-display-default"
+                                , class "uk-radio"
+                                , name "time-display"
+                                , type_ "radio"
+                                , onInput OnTimeDisplayChange
+                                , value "default"
+                                , checked (model.preferences.timeDisplay == "default")
+                                ]
+                                []
+                            , text " Default"
+                            , span [ class "uk-text-muted" ] [ text " (2:15)" ]
+                            ]
+                        , label [ for "time-display-minutes" ]
+                            [ input
+                                [ id "time-display-minutes"
+                                , class "uk-radio"
+                                , name "time-display"
+                                , type_ "radio"
+                                , onInput OnTimeDisplayChange
+                                , value "minutes1"
+                                , checked (model.preferences.timeDisplay == "minutes1")
+                                ]
+                                []
+                            , text " Minutes"
+                            , span [ class "uk-text-muted" ] [ text " (135)" ]
+                            ]
+                        ]
                     ]
                 , h2 [] [ text "Todoist" ]
                 , div [ class "uk-margin" ]

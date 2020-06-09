@@ -5185,7 +5185,7 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$document = _Browser_document;
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$float = _Json_decodeFloat;
-var $author$project$Preferences$emptyPreferencesModel = {apiKey: '', isTodoistPremium: false, refreshTimeInterval: 0, todoistLabel: ''};
+var $author$project$Preferences$emptyPreferencesModel = {apiKey: '', isTodoistPremium: false, refreshTimeInterval: 0, timeDisplay: 'default', todoistLabel: ''};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Maybe$withDefault = F2(
@@ -5403,12 +5403,16 @@ var $author$project$Preferences$userSettingsSave = _Platform_outgoingPort(
 					'refreshTimeInterval',
 					$elm$json$Json$Encode$float($.refreshTimeInterval)),
 					_Utils_Tuple2(
+					'timeDisplay',
+					$elm$json$Json$Encode$string($.timeDisplay)),
+					_Utils_Tuple2(
 					'todoistLabel',
 					$elm$json$Json$Encode$string($.todoistLabel))
 				]));
 	});
 var $author$project$Preferences$update = F2(
 	function (msg, model) {
+		var actualPreferences = model.preferences;
 		switch (msg.$) {
 			case 'OnPreferencesSave':
 				return _Utils_Tuple2(
@@ -5509,6 +5513,20 @@ var $author$project$Preferences$update = F2(
 							preferencesAreDifferent: A2($author$project$Preferences$arePreferencesDifferent, model.lastSavedPreferences, model.preferences)
 						}),
 					$elm$core$Platform$Cmd$none);
+			case 'OnTimeDisplayChange':
+				var timeDisplay = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							preferences: _Utils_update(
+								actualPreferences,
+								{timeDisplay: timeDisplay})
+						}),
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$identity,
+						$elm$core$Task$succeed($author$project$Preferences$ComparePreferencesModels)));
 			default:
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 		}
@@ -8294,8 +8312,19 @@ var $author$project$Preferences$OnPreferencesSave = {$: 'OnPreferencesSave'};
 var $author$project$Preferences$OnRefreshIntervalInputChange = function (a) {
 	return {$: 'OnRefreshIntervalInputChange', a: a};
 };
+var $author$project$Preferences$OnTimeDisplayChange = function (a) {
+	return {$: 'OnTimeDisplayChange', a: a};
+};
 var $author$project$Preferences$OnWindowCLoseClick = {$: 'OnWindowCLoseClick'};
 var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$bool(bool));
+	});
+var $elm$html$Html$Attributes$checked = $elm$html$Html$Attributes$boolProperty('checked');
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(
@@ -8326,6 +8355,7 @@ var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$label = _VirtualDom_node('label');
+var $elm$html$Html$Attributes$name = $elm$html$Html$Attributes$stringProperty('name');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -8375,6 +8405,7 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
 var $elm$html$Html$section = _VirtualDom_node('section');
+var $elm$html$Html$span = _VirtualDom_node('span');
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
@@ -8386,15 +8417,7 @@ var $elm$virtual_dom$VirtualDom$attribute = F2(
 			_VirtualDom_noJavaScriptOrHtmlUri(value));
 	});
 var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
-var $elm$html$Html$Attributes$boolProperty = F2(
-	function (key, bool) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$bool(bool));
-	});
 var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
-var $elm$html$Html$span = _VirtualDom_node('span');
 var $author$project$Preferences$viewCheckTodoisPremium = F2(
 	function (isPremium, isLoading) {
 		return isPremium ? A2(
@@ -8658,6 +8681,109 @@ var $author$project$Preferences$viewBody = function (model) {
 								_List_Nil,
 								_List_fromArray(
 									[
+										$elm$html$Html$text('Application settings')
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('uk-margin')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$label,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$for('radio-time-display'),
+												$elm$html$Html$Attributes$class('uk-form-label')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Tray time display:')
+											])),
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('uk-form-controls uk-grid'),
+												$elm$html$Html$Attributes$id('radio-time-display')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$label,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$for('time-display-default')
+													]),
+												_List_fromArray(
+													[
+														A2(
+														$elm$html$Html$input,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$id('time-display-default'),
+																$elm$html$Html$Attributes$class('uk-radio'),
+																$elm$html$Html$Attributes$name('time-display'),
+																$elm$html$Html$Attributes$type_('radio'),
+																$elm$html$Html$Events$onInput($author$project$Preferences$OnTimeDisplayChange),
+																$elm$html$Html$Attributes$value('default'),
+																$elm$html$Html$Attributes$checked(model.preferences.timeDisplay === 'default')
+															]),
+														_List_Nil),
+														$elm$html$Html$text(' Default'),
+														A2(
+														$elm$html$Html$span,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$class('uk-text-muted')
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text(' (2:15)')
+															]))
+													])),
+												A2(
+												$elm$html$Html$label,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$for('time-display-minutes')
+													]),
+												_List_fromArray(
+													[
+														A2(
+														$elm$html$Html$input,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$id('time-display-minutes'),
+																$elm$html$Html$Attributes$class('uk-radio'),
+																$elm$html$Html$Attributes$name('time-display'),
+																$elm$html$Html$Attributes$type_('radio'),
+																$elm$html$Html$Events$onInput($author$project$Preferences$OnTimeDisplayChange),
+																$elm$html$Html$Attributes$value('minutes1'),
+																$elm$html$Html$Attributes$checked(model.preferences.timeDisplay === 'minutes1')
+															]),
+														_List_Nil),
+														$elm$html$Html$text(' Minutes'),
+														A2(
+														$elm$html$Html$span,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$class('uk-text-muted')
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text(' (135)')
+															]))
+													]))
+											]))
+									])),
+								A2(
+								$elm$html$Html$h2,
+								_List_Nil,
+								_List_fromArray(
+									[
 										$elm$html$Html$text('Todoist')
 									])),
 								A2(
@@ -8847,21 +8973,26 @@ _Platform_export({'Preferences':{'init':$author$project$Preferences$main(
 					function (todoistLabel) {
 						return A2(
 							$elm$json$Json$Decode$andThen,
-							function (refreshTimeInterval) {
+							function (timeDisplay) {
 								return A2(
 									$elm$json$Json$Decode$andThen,
-									function (isTodoistPremium) {
+									function (refreshTimeInterval) {
 										return A2(
 											$elm$json$Json$Decode$andThen,
-											function (apiKey) {
-												return $elm$json$Json$Decode$succeed(
-													{apiKey: apiKey, isTodoistPremium: isTodoistPremium, refreshTimeInterval: refreshTimeInterval, todoistLabel: todoistLabel});
+											function (isTodoistPremium) {
+												return A2(
+													$elm$json$Json$Decode$andThen,
+													function (apiKey) {
+														return $elm$json$Json$Decode$succeed(
+															{apiKey: apiKey, isTodoistPremium: isTodoistPremium, refreshTimeInterval: refreshTimeInterval, timeDisplay: timeDisplay, todoistLabel: todoistLabel});
+													},
+													A2($elm$json$Json$Decode$field, 'apiKey', $elm$json$Json$Decode$string));
 											},
-											A2($elm$json$Json$Decode$field, 'apiKey', $elm$json$Json$Decode$string));
+											A2($elm$json$Json$Decode$field, 'isTodoistPremium', $elm$json$Json$Decode$bool));
 									},
-									A2($elm$json$Json$Decode$field, 'isTodoistPremium', $elm$json$Json$Decode$bool));
+									A2($elm$json$Json$Decode$field, 'refreshTimeInterval', $elm$json$Json$Decode$float));
 							},
-							A2($elm$json$Json$Decode$field, 'refreshTimeInterval', $elm$json$Json$Decode$float));
+							A2($elm$json$Json$Decode$field, 'timeDisplay', $elm$json$Json$Decode$string));
 					},
 					A2($elm$json$Json$Decode$field, 'todoistLabel', $elm$json$Json$Decode$string)))
 			])))(0)}});}(this));
