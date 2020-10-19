@@ -5185,7 +5185,7 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$document = _Browser_document;
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$float = _Json_decodeFloat;
-var $author$project$Preferences$emptyPreferencesModel = {apiKey: '', isTodoistPremium: false, refreshTimeInterval: 0, timeDisplay: 'default', todoistLabel: ''};
+var $author$project$Preferences$emptyPreferencesModel = {apiKey: '', includeOverdue: true, isTodoistPremium: false, refreshTimeInterval: 0, timeDisplay: 'default', todoistLabel: ''};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Maybe$withDefault = F2(
@@ -5241,6 +5241,12 @@ var $author$project$Preferences$updateApiKey = F2(
 		return _Utils_update(
 			model,
 			{apiKey: value});
+	});
+var $author$project$Preferences$updateIncludeOverdue = F2(
+	function (model, value) {
+		return _Utils_update(
+			model,
+			{includeOverdue: value});
 	});
 var $elm$core$Basics$clamp = F3(
 	function (low, high, number) {
@@ -5397,6 +5403,9 @@ var $author$project$Preferences$userSettingsSave = _Platform_outgoingPort(
 					'apiKey',
 					$elm$json$Json$Encode$string($.apiKey)),
 					_Utils_Tuple2(
+					'includeOverdue',
+					$elm$json$Json$Encode$bool($.includeOverdue)),
+					_Utils_Tuple2(
 					'isTodoistPremium',
 					$elm$json$Json$Encode$bool($.isTodoistPremium)),
 					_Utils_Tuple2(
@@ -5446,6 +5455,18 @@ var $author$project$Preferences$update = F2(
 						model,
 						{
 							preferences: A2($author$project$Preferences$updateRefreshTimeInterval, model.preferences, value)
+						}),
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$identity,
+						$elm$core$Task$succeed($author$project$Preferences$ComparePreferencesModels)));
+			case 'OnIncludeOverdueChange':
+				var value = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							preferences: A2($author$project$Preferences$updateIncludeOverdue, model.preferences, value)
 						}),
 					A2(
 						$elm$core$Task$perform,
@@ -8308,6 +8329,9 @@ var $rtfeldman$elm_css$Html$Styled$toUnstyled = $rtfeldman$elm_css$VirtualDom$St
 var $author$project$Preferences$OnApiKeyInputChange = function (a) {
 	return {$: 'OnApiKeyInputChange', a: a};
 };
+var $author$project$Preferences$OnIncludeOverdueChange = function (a) {
+	return {$: 'OnIncludeOverdueChange', a: a};
+};
 var $author$project$Preferences$OnPreferencesSave = {$: 'OnPreferencesSave'};
 var $author$project$Preferences$OnRefreshIntervalInputChange = function (a) {
 	return {$: 'OnRefreshIntervalInputChange', a: a};
@@ -8367,6 +8391,21 @@ var $elm$html$Html$Events$on = F2(
 			event,
 			$elm$virtual_dom$VirtualDom$Normal(decoder));
 	});
+var $elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
+	});
+var $elm$html$Html$Events$targetChecked = A2(
+	$elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'checked']),
+	$elm$json$Json$Decode$bool);
+var $elm$html$Html$Events$onCheck = function (tagger) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'change',
+		A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetChecked));
+};
 var $elm$html$Html$Events$onClick = function (msg) {
 	return A2(
 		$elm$html$Html$Events$on,
@@ -8385,10 +8424,6 @@ var $elm$html$Html$Events$stopPropagationOn = F2(
 			$elm$virtual_dom$VirtualDom$on,
 			event,
 			$elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
-	});
-var $elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
 	});
 var $elm$html$Html$Events$targetValue = A2(
 	$elm$json$Json$Decode$at,
@@ -8925,6 +8960,46 @@ var $author$project$Preferences$viewBody = function (model) {
 												$elm$html$Html$text('Task label:')
 											])),
 										$author$project$Preferences$viewTodolistLabel(model.preferences.todoistLabel)
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('uk-margin')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$label,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$for('input-include-overdue'),
+												$elm$html$Html$Attributes$class('uk-form-label')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Include overdue tasks:')
+											])),
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('uk-form-controls')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$input,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$id('input-include-overdue'),
+														$elm$html$Html$Attributes$type_('checkbox'),
+														$elm$html$Html$Attributes$class('uk-checkbox uk-form-width-small'),
+														$elm$html$Html$Events$onCheck($author$project$Preferences$OnIncludeOverdueChange),
+														$elm$html$Html$Attributes$checked(model.preferences.includeOverdue)
+													]),
+												_List_Nil)
+											]))
 									]))
 							]))
 					]))
@@ -8982,11 +9057,16 @@ _Platform_export({'Preferences':{'init':$author$project$Preferences$main(
 											function (isTodoistPremium) {
 												return A2(
 													$elm$json$Json$Decode$andThen,
-													function (apiKey) {
-														return $elm$json$Json$Decode$succeed(
-															{apiKey: apiKey, isTodoistPremium: isTodoistPremium, refreshTimeInterval: refreshTimeInterval, timeDisplay: timeDisplay, todoistLabel: todoistLabel});
+													function (includeOverdue) {
+														return A2(
+															$elm$json$Json$Decode$andThen,
+															function (apiKey) {
+																return $elm$json$Json$Decode$succeed(
+																	{apiKey: apiKey, includeOverdue: includeOverdue, isTodoistPremium: isTodoistPremium, refreshTimeInterval: refreshTimeInterval, timeDisplay: timeDisplay, todoistLabel: todoistLabel});
+															},
+															A2($elm$json$Json$Decode$field, 'apiKey', $elm$json$Json$Decode$string));
 													},
-													A2($elm$json$Json$Decode$field, 'apiKey', $elm$json$Json$Decode$string));
+													A2($elm$json$Json$Decode$field, 'includeOverdue', $elm$json$Json$Decode$bool));
 											},
 											A2($elm$json$Json$Decode$field, 'isTodoistPremium', $elm$json$Json$Decode$bool));
 									},

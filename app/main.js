@@ -130,7 +130,8 @@ function createTasksWindow () {
 async function fetchTasksTime () {
   try {
     const [fetchedTasks, fetchedLabels] = await fetchTasksAndLabels({
-      authKey: settingsStore.get('apiKey')
+      authKey: settingsStore.get('apiKey'),
+      includeOverdue: settingsStore.get('includeOverdue')
     })
 
     const tasksWithTime = getTasksWithTimeLabels([fetchedTasks, fetchedLabels], {

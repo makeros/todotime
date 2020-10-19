@@ -90,6 +90,7 @@ type alias PreferencesModel =
     , todoistLabel : String
     , isTodoistPremium : Bool
     , timeDisplay : String
+    , includeOverdue : Bool
     }
 
 
@@ -100,6 +101,7 @@ emptyPreferencesModel =
     , todoistLabel = ""
     , isTodoistPremium = False
     , timeDisplay = "default"
+    , includeOverdue = True
     }
 
 
@@ -114,6 +116,7 @@ type Msg
     | OnTodoistLabelPrefixInputChange String
     | OnTodoistLabelSuffixInputChange String
     | OnTimeDisplayChange String
+    | OnIncludeOverdueChange Bool
     | OnPreferencesSave
     | TodoistPremiumChanged Bool
     | OnTodoistPremiumCheckClick
@@ -137,6 +140,9 @@ update msg model =
 
         OnRefreshIntervalInputChange value ->
             ( { model | preferences = updateRefreshTimeInterval model.preferences value }, Task.succeed ComparePreferencesModels |> Task.perform identity )
+
+        OnIncludeOverdueChange value ->
+            ( { model | preferences = updateIncludeOverdue model.preferences value }, Task.succeed ComparePreferencesModels |> Task.perform identity )
 
         OnTodoistLabelPrefixInputChange value ->
             ( { model | preferences = updateTodoistLabel model.preferences value 0 }, Task.succeed ComparePreferencesModels |> Task.perform identity )
@@ -169,6 +175,11 @@ update msg model =
 updateTodoistPremium : PreferencesModel -> Bool -> PreferencesModel
 updateTodoistPremium model value =
     { model | isTodoistPremium = value }
+
+
+updateIncludeOverdue : PreferencesModel -> Bool -> PreferencesModel
+updateIncludeOverdue model value =
+    { model | includeOverdue = value }
 
 
 updateApiKey : PreferencesModel -> String -> PreferencesModel
@@ -293,6 +304,19 @@ viewBody model =
                 , div [ class "uk-margin" ]
                     [ label [ for "input-todoist-label", class "uk-form-label" ] [ text "Task label:" ]
                     , viewTodolistLabel model.preferences.todoistLabel
+                    ]
+                , div [ class "uk-margin" ]
+                    [ label [ for "input-include-overdue", class "uk-form-label" ] [ text "Include overdue tasks:" ]
+                    , div [ class "uk-form-controls" ]
+                        [ input
+                            [ id "input-include-overdue"
+                            , type_ "checkbox"
+                            , class "uk-checkbox uk-form-width-small"
+                            , onCheck OnIncludeOverdueChange
+                            , checked (model.preferences.includeOverdue == True)
+                            ]
+                            []
+                        ]
                     ]
                 ]
             ]
