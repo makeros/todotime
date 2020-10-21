@@ -1,9 +1,9 @@
-name: Run tests on CI
+name: Run tests on CI for develop PR
 
 on:
   pull_request:
     branches:
-    - master
+    - develop
 
 jobs:
   build_and_test:
