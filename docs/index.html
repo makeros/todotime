@@ -6,6 +6,7 @@
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.4.0/dist/css/uikit.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
     <style>
 
       body {
@@ -25,6 +26,29 @@
       }
       .uk-button-primary:hover {
         background-color: #0b1525;
+      }
+      .link-github {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        color: white;
+        padding: 10px;
+      }
+      .link-github:hover {
+        color: #0b1525;
+      }
+      .link-youtube {
+        position: absolute;
+        right: 50px;
+        bottom: 0;
+        color: white;
+        padding: 10px;
+      }
+      .link-youtube:hover {
+        color: #0b1525;
+      }
+      .list-features > li > span {
+        padding-right: 5px;
       }
     </style>
   </head>
@@ -50,47 +74,68 @@
     </nav>
 
 
-      <div class="uk-text-lead uk-text-center uk-margin">Control how much You can get done each day!</div>
+      <div class="uk-text-lead uk-text-center uk-margin">Get motivated and get done more with Todotime!</div>
       <div class="uk-cover-container uk-height-medium">
           <img src="assets/jumbo_todotime_cover.png" alt="" uk-cover>
+          <a class="link-github" href="https://github.com/makeros/todotime"><span uk-icon="icon: github;ratio: 2"></span></a>
+          <a class="link-youtube" href="https://www.youtube.com/channel/UCRG3rRgqo2Rwg3t-dXgplIA/"><span uk-icon="icon: youtube;ratio: 2"></span></a>
       </div>
-      <div class="uk-flex uk-flex-center uk-flex-wrap uk-flex-wrap-stretch">
-          <div class="uk-card uk-card-default uk-card-body uk-margin-auto uk-margin-top">
-            <div class="uk-dark uk-text-center">
-              <h3>Get latest Mac OS App</h3>
+      <div class="">
+          <div class="uk-card uk-card-default uk-card-body  uk-margin-top">
+            <h2 class="uk-card-title">
+              Welcome
+            </h2>
+            <p>
+              Todotime is the app where you can monitor the time of your tasks. Simply plan and manage tasks in Todoist but get motivated and execute with Todotime.
+            </p>
+            <div class="uk-dark uk-text-center ">
+              <iframe width="560" height="315" src="https://www.youtube.com/embed/QiZfYXkqUdI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+          </div>
+          <div class="uk-card uk-card-default uk-card-body uk-margin-top">
+            <h2 class="uk-card-title">
+              Download
+            </h2>
+            <div class="uk-flex uk-flex-center uk-flex-wrap uk-flex-wrap-stretch">
+            <div class="uk-margin-auto uk-dark uk-text-center">
+              <h3>macOS</h3>
               <p>
                 <a class="uk-button uk-button-primary uk-button-large" href="https://github.com/makeros/todotime/releases">
                   <span uk-icon="download"></span>
                   Download
                 </a>
               </p>
-              <p>
-                <a class="uk-button uk-button-default uk-button-large" href="https://github.com/makeros/todotime"><span uk-icon="github">Github</span></a></p>
-              </p>
+              </div>
+              <div class="uk-margin-auto uk-text-center">
+                <h3>Android</h3>
+                <p>Comming soon...</p>
+              </div>
+              <div class="uk-margin-auto uk-text-center">
+                <h3>IOS</h3>
+                <p>Comming soon...</p>
+              </div>
+              <div class="uk-margin-auto uk-text-center">
+                <h3>Web Application</h3>
+                <p>Comming soon...</p>
+              </div>
+              <div class="uk-margin-auto uk-text-center">
+                <h3>Chrome extension</h3>
+                <p>Comming soon...</p>
+              </div>
             </div>
           </div>
           <div class="uk-card uk-card-default uk-card-body uk-margin-auto uk-margin-top">
             <div class="uk-dark">
-              <h3>Features:</h3>
-              <ul class="uk-list uk-list-bullet">
-                <li>Calculates the amount of time allocated for Today.</li>
-                <li>Use custom labels to set the time.</li>
+              <h3 class="uk-card-title">Features</h3>
+              <ul class="uk-list list-features">
+                <li><span uk-icon="check"></span>Calculates the amount of time allocated for Today.</li>
+                <li><span uk-icon="check"></span>Define your labels for time management.</li>
+                <li><span uk-icon="check"></span>Include time from overdue tasks.</li>
+                <li><span uk-icon="future"></span>Run timer for each task to get more focus.</li>
+                <li><span uk-icon="future"></span>Complete the tasks directly from Todoist.</li>
+                <li><span uk-icon="future"></span>Set your goal rewards.</li>
+              </ul>
 
-              </ul>
-              <h3>To do:</h3>
-              <ul class="uk-list uk-list-bullet">
-                <li>Run timer for each task to get more focus!</li>
-              </ul>
-            </div>
-          </div>
-          <div class="uk-card uk-card-default uk-card-body uk-margin-auto uk-margin-top">
-            <div class="uk-dark">
-              <h3>How to?</h3>
-              <ol class="uk-list">
-                <li>1. Add label to your task on Todoist. By default it will be <b>@t-15</b> for 15 minutes.</li>
-                <li>2. Open Todotime and add Todoist Integration <b>Token API</b>.</li>
-                <li>
-              </ol>
             </div>
           </div>
       </div>
