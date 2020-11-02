@@ -6564,54 +6564,54 @@ var $rtfeldman$elm_css$Css$Structure$concatMapLastStyleBlock = F2(
 			A2($rtfeldman$elm_css$Css$Structure$concatMapLastStyleBlock, update, rest));
 	});
 var $elm$core$String$cons = _String_cons;
-var $Skinney$murmur3$Murmur3$HashData = F4(
+var $rtfeldman$elm_css$ElmCssVendor$Murmur3$HashData = F4(
 	function (shift, seed, hash, charsProcessed) {
 		return {charsProcessed: charsProcessed, hash: hash, seed: seed, shift: shift};
 	});
-var $Skinney$murmur3$Murmur3$c1 = 3432918353;
-var $Skinney$murmur3$Murmur3$c2 = 461845907;
-var $Skinney$murmur3$Murmur3$multiplyBy = F2(
+var $rtfeldman$elm_css$ElmCssVendor$Murmur3$c1 = 3432918353;
+var $rtfeldman$elm_css$ElmCssVendor$Murmur3$c2 = 461845907;
+var $rtfeldman$elm_css$ElmCssVendor$Murmur3$multiplyBy = F2(
 	function (b, a) {
 		return ((a & 65535) * b) + ((((a >>> 16) * b) & 65535) << 16);
 	});
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Bitwise$or = _Bitwise_or;
-var $Skinney$murmur3$Murmur3$rotlBy = F2(
+var $rtfeldman$elm_css$ElmCssVendor$Murmur3$rotlBy = F2(
 	function (b, a) {
 		return (a << b) | (a >>> (32 - b));
 	});
 var $elm$core$Bitwise$xor = _Bitwise_xor;
-var $Skinney$murmur3$Murmur3$finalize = function (data) {
+var $rtfeldman$elm_css$ElmCssVendor$Murmur3$finalize = function (data) {
 	var acc = (!(!data.hash)) ? (data.seed ^ A2(
-		$Skinney$murmur3$Murmur3$multiplyBy,
-		$Skinney$murmur3$Murmur3$c2,
+		$rtfeldman$elm_css$ElmCssVendor$Murmur3$multiplyBy,
+		$rtfeldman$elm_css$ElmCssVendor$Murmur3$c2,
 		A2(
-			$Skinney$murmur3$Murmur3$rotlBy,
+			$rtfeldman$elm_css$ElmCssVendor$Murmur3$rotlBy,
 			15,
-			A2($Skinney$murmur3$Murmur3$multiplyBy, $Skinney$murmur3$Murmur3$c1, data.hash)))) : data.seed;
+			A2($rtfeldman$elm_css$ElmCssVendor$Murmur3$multiplyBy, $rtfeldman$elm_css$ElmCssVendor$Murmur3$c1, data.hash)))) : data.seed;
 	var h0 = acc ^ data.charsProcessed;
-	var h1 = A2($Skinney$murmur3$Murmur3$multiplyBy, 2246822507, h0 ^ (h0 >>> 16));
-	var h2 = A2($Skinney$murmur3$Murmur3$multiplyBy, 3266489909, h1 ^ (h1 >>> 13));
+	var h1 = A2($rtfeldman$elm_css$ElmCssVendor$Murmur3$multiplyBy, 2246822507, h0 ^ (h0 >>> 16));
+	var h2 = A2($rtfeldman$elm_css$ElmCssVendor$Murmur3$multiplyBy, 3266489909, h1 ^ (h1 >>> 13));
 	return (h2 ^ (h2 >>> 16)) >>> 0;
 };
 var $elm$core$String$foldl = _String_foldl;
-var $Skinney$murmur3$Murmur3$mix = F2(
+var $rtfeldman$elm_css$ElmCssVendor$Murmur3$mix = F2(
 	function (h1, k1) {
 		return A2(
-			$Skinney$murmur3$Murmur3$multiplyBy,
+			$rtfeldman$elm_css$ElmCssVendor$Murmur3$multiplyBy,
 			5,
 			A2(
-				$Skinney$murmur3$Murmur3$rotlBy,
+				$rtfeldman$elm_css$ElmCssVendor$Murmur3$rotlBy,
 				13,
 				h1 ^ A2(
-					$Skinney$murmur3$Murmur3$multiplyBy,
-					$Skinney$murmur3$Murmur3$c2,
+					$rtfeldman$elm_css$ElmCssVendor$Murmur3$multiplyBy,
+					$rtfeldman$elm_css$ElmCssVendor$Murmur3$c2,
 					A2(
-						$Skinney$murmur3$Murmur3$rotlBy,
+						$rtfeldman$elm_css$ElmCssVendor$Murmur3$rotlBy,
 						15,
-						A2($Skinney$murmur3$Murmur3$multiplyBy, $Skinney$murmur3$Murmur3$c1, k1))))) + 3864292196;
+						A2($rtfeldman$elm_css$ElmCssVendor$Murmur3$multiplyBy, $rtfeldman$elm_css$ElmCssVendor$Murmur3$c1, k1))))) + 3864292196;
 	});
-var $Skinney$murmur3$Murmur3$hashFold = F2(
+var $rtfeldman$elm_css$ElmCssVendor$Murmur3$hashFold = F2(
 	function (c, data) {
 		var res = data.hash | ((255 & $elm$core$Char$toCode(c)) << data.shift);
 		var _v0 = data.shift;
@@ -6619,20 +6619,20 @@ var $Skinney$murmur3$Murmur3$hashFold = F2(
 			return {
 				charsProcessed: data.charsProcessed + 1,
 				hash: 0,
-				seed: A2($Skinney$murmur3$Murmur3$mix, data.seed, res),
+				seed: A2($rtfeldman$elm_css$ElmCssVendor$Murmur3$mix, data.seed, res),
 				shift: 0
 			};
 		} else {
 			return {charsProcessed: data.charsProcessed + 1, hash: res, seed: data.seed, shift: data.shift + 8};
 		}
 	});
-var $Skinney$murmur3$Murmur3$hashString = F2(
+var $rtfeldman$elm_css$ElmCssVendor$Murmur3$hashString = F2(
 	function (seed, str) {
-		return $Skinney$murmur3$Murmur3$finalize(
+		return $rtfeldman$elm_css$ElmCssVendor$Murmur3$finalize(
 			A3(
 				$elm$core$String$foldl,
-				$Skinney$murmur3$Murmur3$hashFold,
-				A4($Skinney$murmur3$Murmur3$HashData, 0, seed, 0, 0),
+				$rtfeldman$elm_css$ElmCssVendor$Murmur3$hashFold,
+				A4($rtfeldman$elm_css$ElmCssVendor$Murmur3$HashData, 0, seed, 0, 0),
 				str));
 	});
 var $rtfeldman$elm_css$Hash$murmurSeed = 15739;
@@ -6718,7 +6718,7 @@ var $rtfeldman$elm_css$Hash$fromString = function (str) {
 		$elm$core$String$cons,
 		_Utils_chr('_'),
 		$rtfeldman$elm_hex$Hex$toString(
-			A2($Skinney$murmur3$Murmur3$hashString, $rtfeldman$elm_css$Hash$murmurSeed, str)));
+			A2($rtfeldman$elm_css$ElmCssVendor$Murmur3$hashString, $rtfeldman$elm_css$Hash$murmurSeed, str)));
 };
 var $elm$core$List$head = function (list) {
 	if (list.b) {
