@@ -13,6 +13,24 @@ App for timeboxing your tasks from Todoist.
 
 ## Development
 
+### Development workflow
+
+1. Create a branch from the `develop` branch.
+1. PR to develop -> this triggers CI.
+1. Merge to `develop` and build app from `develop` for testing.
+1. Merge package of features and fixes from `develop` to `master` - this triggers CI with automatic App Release
+
+### App Development
+
+1. Run electron container
+```
+npm start
+```
+2. Run the frontend with watch
+```
+npm run frontend:preferences:watch
+```
+
 ### Handy request examples for todoist
 
 - get active tasks for today
