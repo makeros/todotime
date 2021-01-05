@@ -1,5 +1,5 @@
 {
-  "name": "Todotime",
+  "name": "todotime",
   "productName": "Todotime",
   "description": "Unofficial extension for todoist to handle task timeboxing.",
   "keywords": [
@@ -13,7 +13,7 @@
   "scripts": {
     "start": "electron .",
     "test": "npm run test:unit",
-    "test:unit": "jest ./app/src",
+    "test:unit": "jest",
     "pack": "electron-builder --dir",
     "dist": "npm run frontend:styles:build && npm run frontend:preferences:build && electron-builder",
     "frontend:preferences:build": "elm make app/frontend/src/Preferences.elm --output app/frontend/preferences.js",

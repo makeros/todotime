@@ -8,6 +8,7 @@ const getTextForTray = require('./src/get-text-for-tray')
 const timeAsDefault = require('./src/time-as-default')
 const timeAsMinutes1 = require('./src/time-as-minutes1')
 const getTodoistPremiumStatus = require('./src/todoist/get-todoist-premium-status')
+const getCompleteTasksHistory = require('./src/todoist/get-completed-tasks-history')
 const fetchTasksAndLabels = require('./src/todoist/fetch-tasks-and-labels')
 const dbInMemory = require('./src/db-in-memory')(['tasksList'])
 const { getContextMenu } = require('./src/context-menu')(appStore)
@@ -44,6 +45,7 @@ app.on('window-all-closed', function () {
 ipcMain.on('tasks:get-list', function (event) {
   const tasks = dbInMemory.getTable('tasksList') || []
   event.reply('tasks:get-list:reply', { data: tasks })
+  console.log('completed tasks', getCompleteTasksHistory({ authKey: settingsStore.get('apiKey') }, { weeks: 1 }))
 })
 ipcMain.on('user-settings:save', onUserSettingsSave)
 ipcMain.on('user-settings:get', onUserSettingsGet)
