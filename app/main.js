@@ -35,7 +35,10 @@ const timers = {
 
 app.on('ready', function () {
   createTray(app)()
-  app.dock.hide()
+
+  if (app.dock) {
+    app.dock.hide()
+  }
 })
 
 app.on('window-all-closed', function () {
