@@ -1,5 +1,5 @@
-const getLabelRegExp = require('./get-label-regexp')
+const getLabelRegExp = require('./../get-label-regexp')
 
 exports.extractValueFromLabel = function extractValueFromLabel (labelValue) {
-  return parseInt(value.match(getLabelRegExp())[1])
+  return parseInt(labelValue.match(getLabelRegExp())[1])
 }

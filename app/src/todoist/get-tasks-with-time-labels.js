@@ -1,5 +1,6 @@
 const getLabelRegExp = require('./get-label-regexp')
 const { extractValueFromLabel } = require('./utils/extract-value-from-label.js')
+const { taskWithTimeModel } = require('./models')
 
 module.exports = function ([fetchedTasks, fetchedLabels], { todoistLabel }) {
   const labelRegepx = getLabelRegExp()
@@ -11,6 +12,7 @@ module.exports = function ([fetchedTasks, fetchedLabels], { todoistLabel }) {
   return fetchedTasks
     .filter(taskHasLabels)
     .map(attachTimeLabelsToTask(labels))
+    .map((task) => taskWithTimeModel(task))
 }
 
 function filterTasksByLabelTemplate (regexp) {
@@ -26,10 +28,6 @@ function mapLabelsWithValue ({ labelRegepx }) {
     }
   }
 }
-
-// function extractMinutesFromLabel (value, regexp) {
-//   return parseInt(value.match(regexp)[1])
-// }
 
 function attachTimeLabelsToTask (labels) {
   return (task) => {
