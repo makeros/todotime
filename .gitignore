@@ -4,4 +4,5 @@ out
 dist/
 elm-stuff/
 app/frontend/preferences.js
+app/frontend/tasks.js
 build
