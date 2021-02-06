@@ -19,10 +19,7 @@ module.exports = {
     )
   },
   getTasksList: function (cb) {
-    ipcRenderer.send('tasks:get-list')
-    ipcRenderer.once('tasks:get-list:reply', (event, payload) =>
-      cb(null, payload)
-    )
+    return ipcRenderer
   },
   closeWindow: function () {
     remote.getCurrentWindow().close()

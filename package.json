@@ -1,5 +1,5 @@
 {
-  "name": "Todotime",
+  "name": "todotime",
   "productName": "Todotime",
   "description": "Unofficial extension for todoist to handle task timeboxing.",
   "keywords": [
@@ -13,12 +13,16 @@
   "scripts": {
     "start": "electron .",
     "test": "npm run test:unit",
-    "test:unit": "jest ./app/src",
+    "jest": "jest",
+    "test:unit": "jest --roots ./app/src",
     "pack": "electron-builder --dir",
     "dist": "npm run frontend:styles:build && npm run frontend:preferences:build && electron-builder",
     "frontend:preferences:build": "elm make app/frontend/src/Preferences.elm --output app/frontend/preferences.js",
+    "frontend:tasks:build": "elm make app/frontend/src/Tasks.elm --output app/frontend/tasks.js",
     "frontend:preferences:watch": "chokidar './app/frontend/src/**/*.elm' -c 'npm run frontend:preferences:build'",
-    "frontend:styles:build": "lessc app/frontend/styles/uikit.theme.less app/assets/uikit.css && cp node_modules/uikit/dist/js/*.js app/assets/"
+    "frontend:tasks:watch": "chokidar './app/frontend/src/**/*.elm' -c 'npm run frontend:tasks:build'",
+    "frontend:styles:build": "lessc app/frontend/styles/uikit.theme.less app/assets/uikit.css && cp node_modules/uikit/dist/js/*.js app/assets/",
+    "frontend:build": "npm run frontend:preferences:build && npm run frontend:tasks:build && npm run frontend:styles:build"
   },
   "build": {
     "appId": "com.todotime.app",

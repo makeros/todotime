@@ -1,25 +1,29 @@
-const { app, Tray, BrowserWindow } = require('electron')
+const { app, Tray, BrowserWindow, ipcMain, shell } = require('electron')
 const path = require('path')
 const getTimeInMinutes = require('./src/get-time-in-minutes')
-const getTasksWithTimeLabels = require('./src/todoist/get-tasks-with-time-labels')
 const settingsStore = require('./src/store/settings')
 const appStore = require('./src/store/app')
+const tasksTimeSeriesStore = require('./src/store/tasksTimeSeriesHistory')
 const getTextForTray = require('./src/get-text-for-tray')
 const timeAsDefault = require('./src/time-as-default')
 const timeAsMinutes1 = require('./src/time-as-minutes1')
-const getTodoistPremiumStatus = require('./src/todoist/get-todoist-premium-status')
-const fetchTasksAndLabels = require('./src/todoist/fetch-tasks-and-labels')
+const {
+  getTasksWithTimeLabels,
+  getTodoistPremiumStatus,
+  fetchTasksAndLabels
+} = require('./src/todoist')
+const { tasksWindowData } = require('./src/logic')
+
 const dbInMemory = require('./src/db-in-memory')(['tasksList'])
 const { getContextMenu } = require('./src/context-menu')(appStore)
 const trayIcon = require('./src/tray-icon')
-const { ipcMain } = require('electron')
 const logger = {
   log: function (...args) {
     console.log(new Date() + ': ', ...args)
   }
 }
 
-const getRefreshTime = require('./src/get-refresh-time')({ logger, fetchTasksTime })
+const getRefreshTime = require('./src/get-refresh-time')({ logger, fetchTasksTime: fetchTasks })
 const appGlobals = {
   tray: null,
   preferencesWindow: null,
@@ -41,10 +45,23 @@ app.on('window-all-closed', function () {
   }
 })
 
-ipcMain.on('tasks:get-list', function (event) {
-  const tasks = dbInMemory.getTable('tasksList') || []
-  event.reply('tasks:get-list:reply', { data: tasks })
+// TODO: $taskListEventRef - this is a not very beautifull solution but it works for now ;)
+let $taskListEventRef
+async function pushTasksListToTasksWindow (tasks) {
+  if ($taskListEventRef && !$taskListEventRef.sender.isDestroyed()) {
+    $taskListEventRef.reply('tasks:refresh', {
+      data: await tasksWindowData(dbInMemory, tasksTimeSeriesStore, settingsStore)()
+    })
+  }
+}
+
+ipcMain.on('tasks:init', async function (event) {
+  event.reply('tasks:init:reply', {
+    data: await tasksWindowData(dbInMemory, tasksTimeSeriesStore, settingsStore)()
+  })
+  $taskListEventRef = event
 })
+
 ipcMain.on('user-settings:save', onUserSettingsSave)
 ipcMain.on('user-settings:get', onUserSettingsGet)
 ipcMain.on('user-settings:check-todoist-premium', async function (event, apiKey) {
@@ -90,6 +107,7 @@ function createTray (app) {
 
 function createPreferencesWindow () {
   if (appGlobals.preferencesWindow !== null) {
+    appGlobals.preferencesWindow.show()
     appGlobals.preferencesWindow.focus()
     return
   }
@@ -110,12 +128,17 @@ function createPreferencesWindow () {
 
 function createTasksWindow () {
   if (appGlobals.tasksWindow !== null) {
+    appGlobals.tasksWindow.show()
     appGlobals.tasksWindow.focus()
     return
   }
+  const openLinkInDefaultBrowser = function (e, url) {
+    e.preventDefault()
+    shell.openExternal(url)
+  }
   appGlobals.tasksWindow = new BrowserWindow({
-    width: 960,
-    height: 600,
+    width: 760,
+    height: 800,
     webPreferences: {
       nodeIntegration: true
     }
@@ -123,17 +146,21 @@ function createTasksWindow () {
 
   appGlobals.tasksWindow.loadFile(path.join(__dirname, 'frontend/tasks.html'))
 
+  appGlobals.tasksWindow.on('close', function () {
+    appGlobals.tasksWindow.webContents.off('will-navigate', openLinkInDefaultBrowser)
+  })
   appGlobals.tasksWindow.on('closed', function () {
     appGlobals.tasksWindow = null
   })
+
+  appGlobals.tasksWindow.webContents.on('will-navigate', openLinkInDefaultBrowser)
 }
-async function fetchTasksTime () {
+async function fetchTasks () {
   try {
     const [fetchedTasks, fetchedLabels] = await fetchTasksAndLabels({
       authKey: settingsStore.get('apiKey'),
       includeOverdue: settingsStore.get('includeOverdue')
     })
-
     const tasksWithTime = getTasksWithTimeLabels([fetchedTasks, fetchedLabels], {
       todoistLabel: settingsStore.get('todoistLabel')
     })
@@ -143,7 +170,7 @@ async function fetchTasksTime () {
     tasksWithTime.forEach(task => {
       if (task.todotime.labels.length > 0) tasksListDB.add(task)
     })
-
+    pushTasksListToTasksWindow(tasksWithTime)
     return getTimeInMinutes(tasksWithTime)
   } catch (e) {
     console.error('Cannot fetch tasks from todoist.', e)
