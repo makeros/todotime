@@ -155,6 +155,7 @@ function createTasksWindow () {
 
   appGlobals.tasksWindow.webContents.on('will-navigate', openLinkInDefaultBrowser)
 }
+
 async function fetchTasks () {
   try {
     const [fetchedTasks, fetchedLabels] = await fetchTasksAndLabels({

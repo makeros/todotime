@@ -1,6 +1,7 @@
 const {
   getCompletedTasksHistory
 } = require('./../../todoist')
+const { mergeTimeSeries } = require('./merge-time-series')
 
 exports.handleTasksWindowData = function (dbInMemory, tasksTimeSeriesStore, settingsStore) {
   return async function () {
@@ -14,6 +15,7 @@ exports.handleTasksWindowData = function (dbInMemory, tasksTimeSeriesStore, sett
           authKey: settingsStore.get('apiKey'),
           settingsStore
         }, { weeks: 3 })
+
         tasksTimeSeriesStore.set('data', timeSeries)
         tasksTimeSeriesStore.set('lastSync', new Date().getTime())
       } catch (e) {
@@ -26,6 +28,7 @@ exports.handleTasksWindowData = function (dbInMemory, tasksTimeSeriesStore, sett
         authKey: settingsStore.get('apiKey'),
         settingsStore
       }, { days: daysToFetch })
+      console.log('timeseries before', fetchedTimeSeries)
 
       const newTimeSerie = mergeTimeSeries(tasksTimeSeriesStore.get('data'), fetchedTimeSeries)
       tasksTimeSeriesStore.set('data', newTimeSerie)
@@ -35,27 +38,13 @@ exports.handleTasksWindowData = function (dbInMemory, tasksTimeSeriesStore, sett
       timeSeries = tasksTimeSeriesStore.get('data')
     }
 
+    console.log('timeseries after', timeSeries)
     return { tasksList, timeSeries }
   }
 }
 
 function minutesHasPast (startTimestamp, minutesPast) {
   return (Date.now() - startTimestamp) > minutesPast
-}
-
-function mergeTimeSeries (currentData, incomingData) {
-  currentData.sort((a, b) => {
-    if (a[0] < b[0]) {
-      return -1
-    }
-    if (a[0] > b[0]) {
-      return 1
-    }
-    return 0
-  })
-
-  currentData.splice(currentData.length - incomingData.length, incomingData.length, ...incomingData)
-  return currentData
 }
 
 function calculateDaysToFetch (lastSyncTimestamp) {
