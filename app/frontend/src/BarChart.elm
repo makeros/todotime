@@ -72,7 +72,13 @@ column scale ( date, value ) maxHeight =
             , y <| String.fromFloat (Scale.convert (yScale maxHeight) value - 5)
             , textAnchor (String.fromFloat value)
             ]
-            [ text <| String.fromFloat value ]
+            [ text <|
+                if value == 0 then
+                    ""
+
+                else
+                    String.fromFloat value
+            ]
         ]
 
 
