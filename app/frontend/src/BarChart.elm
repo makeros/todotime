@@ -39,7 +39,7 @@ yScale maximumHeight =
 
 dateFormat : Time.Posix -> String
 dateFormat =
-    DateFormat.format [ DateFormat.dayOfMonthFixed, DateFormat.text " ", DateFormat.monthNameAbbreviated ] Time.utc
+    DateFormat.format [ DateFormat.dayOfWeekNameAbbreviated ] Time.utc
 
 
 xAxis : List ( Time.Posix, Float ) -> Svg msg
