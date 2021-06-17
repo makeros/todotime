@@ -141,14 +141,7 @@ view model =
 viewMain : Model -> Html Msg
 viewMain model =
     UI.containerMain []
-        [ h1 []
-            [ text " Left: "
-            , text (String.fromFloat (sumAllTasksValue model.tasksList))
-            , text ", "
-            , text "Avg.: "
-            , text (Round.round 2 <| timeSeriesAvarage model.timeSeries)
-            ]
-        , viewHistoryTimeline model.timeSeries
+        [ viewHistoryTimeline model.timeSeries
         , viewTasksList model.tasksList
         ]
 
@@ -186,11 +179,3 @@ sumAllTasksValue tasksList =
 sumTaskValue : List TaskCustomLabel -> Float
 sumTaskValue labels =
     List.map (\label -> label.value) labels |> List.sum
-
-
-timeSeriesAvarage : List ( Int, Float ) -> Float
-timeSeriesAvarage timeSeries =
-    (List.map Tuple.second timeSeries
-        |> List.sum
-    )
-        / toFloat (List.length timeSeries)

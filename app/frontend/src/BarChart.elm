@@ -3,10 +3,11 @@ module BarChart exposing (view)
 import Axis
 import DateFormat
 import Html.Styled exposing (Html)
+import Round
 import Scale exposing (BandConfig, BandScale, ContinuousScale, defaultBandConfig)
 import String
-import Svg.Styled exposing (Svg, fromUnstyled, g, rect, style, styled, svg, text, text_)
-import Svg.Styled.Attributes exposing (class, css, height, textAnchor, transform, viewBox, width, x, y)
+import Svg.Styled exposing (Svg, fromUnstyled, g, line, rect, style, styled, svg, text, text_)
+import Svg.Styled.Attributes exposing (class, css, fill, height, stroke, strokeDasharray, strokeWidth, textAnchor, transform, viewBox, width, x, x1, x2, y, y1, y2)
 import Time
 import Tuple
 
@@ -54,7 +55,7 @@ xAxis model =
 
 yAxis : List ( Time.Posix, Float ) -> Svg msg
 yAxis model =
-    fromUnstyled (Axis.left [ Axis.tickCount 5 ] (yScale (maxValue model)))
+    fromUnstyled (Axis.left [ Axis.tickCount 5 ] (yScale (highestValue model)))
 
 
 isWeekendClass : String -> String -> String
@@ -101,24 +102,54 @@ view : List ( Time.Posix, Float ) -> Html msg
 view model =
     let
         maxHeight =
-            maxValue model
+            highestValue model
+
+        averagePoints =
+            averageValue model
     in
     svg
-        [ viewBox (List.map String.fromFloat [ 0, 0, w, h ] |> String.join " ") ]
+        [ viewBox (List.map String.fromFloat [ 0, 0, w, h ] |> String.join " "), width "98%" ]
         [ style [] [ text barStyle ]
         , g [ transform ("translate(" ++ String.fromFloat padding ++ " " ++ String.fromFloat (h - padding) ++ ")") ] [ xAxis model ]
         , g [ transform ("translate(" ++ String.fromFloat padding ++ " " ++ String.fromFloat padding ++ ")") ] [ yAxis model ]
         , g [ transform ("translate(" ++ String.fromFloat padding ++ " " ++ String.fromFloat padding ++ ")"), class "series" ] <| List.map (\item -> column (xScale model) item maxHeight) model
+        , g [ transform ("translate(" ++ String.fromFloat padding ++ " " ++ String.fromFloat (h - padding) ++ ")") ]
+            [ line
+                [ x1 "0"
+                , y1 <| String.fromFloat -(h - Scale.convert (yScale maxHeight) averagePoints - 2 * padding)
+                , x2 "95%"
+                , y2 <| String.fromFloat -(h - Scale.convert (yScale maxHeight) averagePoints - 2 * padding)
+                , strokeWidth "1"
+                , stroke "blue"
+                , strokeDasharray "5,5"
+                ]
+                []
+            , text_
+                [ x "93%"
+                , y <| String.fromFloat -(h - Scale.convert (yScale maxHeight) averagePoints - 1.7 * padding)
+                , textAnchor <| Round.round 2 averagePoints
+                , fill "blue"
+                ]
+                [ text <| Round.round 2 averagePoints ]
+            ]
         ]
 
 
-maxValue : List ( Time.Posix, Float ) -> Float
-maxValue model =
+highestValue : List ( Time.Posix, Float ) -> Float
+highestValue model =
     List.map Tuple.second model
         |> List.maximum
         |> Maybe.withDefault 0
 
 
+averageValue : List ( Time.Posix, Float ) -> Float
+averageValue timeSeries =
+    (List.map Tuple.second timeSeries
+        |> List.sum
+    )
+        / toFloat (List.length timeSeries)
+
+
 barStyle : String
 barStyle =
-    ".column rect { fill: #b33426; }\n.column:hover rect { fill: #b33400; }\n.column.weekend rect { fill: green }\n"
+    ".column rect, .column line { fill: #b33426; }\n.column:hover rect { fill: #b33400; }\n.column.weekend rect { fill: green }\n"
