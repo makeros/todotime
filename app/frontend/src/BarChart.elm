@@ -42,6 +42,11 @@ dateFormat =
     DateFormat.format [ DateFormat.dayOfWeekNameAbbreviated ] Time.utc
 
 
+dayOfWeekNumber : Time.Posix -> String
+dayOfWeekNumber =
+    DateFormat.format [ DateFormat.dayOfWeekNumber ] Time.utc
+
+
 xAxis : List ( Time.Posix, Float ) -> Svg msg
 xAxis model =
     fromUnstyled (Axis.bottom [] (Scale.toRenderable dateFormat (xScale model)))
@@ -52,6 +57,15 @@ yAxis model =
     fromUnstyled (Axis.left [ Axis.tickCount 5 ] (yScale (maxValue model)))
 
 
+isWeekendClass : String -> String -> String
+isWeekendClass dayNumberString classNames =
+    if List.member dayNumberString [ "0", "6" ] then
+        classNames ++ " " ++ "weekend"
+
+    else
+        classNames
+
+
 column : BandScale Time.Posix -> ( Time.Posix, Float ) -> Float -> Svg msg
 column scale ( date, value ) maxHeight =
     --TODO: set different color for today column
@@ -59,7 +73,8 @@ column scale ( date, value ) maxHeight =
         columnWidth =
             Scale.bandwidth scale
     in
-    g [ class "column" ]
+    g
+        [ class (isWeekendClass (dayOfWeekNumber date) "column") ]
         [ rect
             [ x <| String.fromFloat (Scale.convert scale date)
             , y <| String.fromFloat (Scale.convert (yScale maxHeight) value)
@@ -106,4 +121,4 @@ maxValue model =
 
 barStyle : String
 barStyle =
-    ".column rect { fill: #b33426; }\n    \n    .column:hover rect { fill: #b33400; }\n"
+    ".column rect { fill: #b33426; }\n.column:hover rect { fill: #b33400; }\n.column.weekend rect { fill: green }\n"
