@@ -120,7 +120,7 @@ view model =
                 , x2 "95%"
                 , y2 <| String.fromFloat -(h - Scale.convert (yScale maxHeight) averagePoints - 2 * padding)
                 , strokeWidth "1"
-                , stroke "blue"
+                , stroke "#4f871f"
                 , strokeDasharray "5,5"
                 ]
                 []
@@ -128,7 +128,7 @@ view model =
                 [ x "93%"
                 , y <| String.fromFloat -(h - Scale.convert (yScale maxHeight) averagePoints - 1.7 * padding)
                 , textAnchor <| Round.round 2 averagePoints
-                , fill "blue"
+                , fill "#4f871f"
                 ]
                 [ text <| Round.round 2 averagePoints ]
             ]
@@ -152,4 +152,4 @@ averageValue timeSeries =
 
 barStyle : String
 barStyle =
-    ".column rect, .column line { fill: #b33426; }\n.column:hover rect { fill: #b33400; }\n.column.weekend rect { fill: green }\n"
+    ".column rect { fill: #b33400; }\n.column:hover rect { fill: #7d2400; }\n.column.weekend rect { fill: #e3774b; }\n.column.weekend:hover rect { fill: #7d2400; }\n"
