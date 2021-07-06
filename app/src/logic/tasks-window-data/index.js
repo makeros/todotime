@@ -1,59 +1,56 @@
 const {
   getCompletedTasksHistory
 } = require('./../../todoist')
+const { calculateDaysToFetch } = require('./calculate-days-to-fetch')
+const { timeHasPast } = require('./time-has-past')
 const { mergeTimeSeries } = require('./merge-time-series')
+const MAX_DAYS_COUNT = 21
 
 exports.handleTasksWindowData = function (dbInMemory, tasksTimeSeriesStore, settingsStore) {
-  return async function () {
+  const fetchEverything = async () => {
     let timeSeries
+    try {
+      timeSeries = await getCompletedTasksHistory({
+        authKey: settingsStore.get('apiKey'),
+        settingsStore
+      }, { weeks: MAX_DAYS_COUNT / 7 })
+
+      tasksTimeSeriesStore.set('data', timeSeries)
+      tasksTimeSeriesStore.set('lastSync', new Date().getTime())
+    } catch (e) {
+      console.error('Cannot complete the tasks time history series.')
+      console.log(e)
+    }
+    return timeSeries
+  }
+
+  const fetchDelta = async (_lastSync) => {
+    const daysToFetch = calculateDaysToFetch(_lastSync)
+    const fetchedTimeSeries = await getCompletedTasksHistory({
+      authKey: settingsStore.get('apiKey'),
+      settingsStore
+    }, { days: daysToFetch })
+
+    const newTimeSerie = mergeTimeSeries(tasksTimeSeriesStore.get('data'), fetchedTimeSeries, MAX_DAYS_COUNT)
+    tasksTimeSeriesStore.set('data', newTimeSerie)
+    tasksTimeSeriesStore.set('lastSync', new Date().getTime())
+    return newTimeSerie
+  }
+
+  return async function _handleTasksWindowData () {
     const tasksList = Array.from(dbInMemory.getTable('tasksList')) || []
     const lastSync = tasksTimeSeriesStore.get('lastSync')
 
     if (!lastSync) {
-      try {
-        timeSeries = await getCompletedTasksHistory({
-          authKey: settingsStore.get('apiKey'),
-          settingsStore
-        }, { weeks: 3 })
-
-        tasksTimeSeriesStore.set('data', timeSeries)
-        tasksTimeSeriesStore.set('lastSync', new Date().getTime())
-      } catch (e) {
-        console.error('Cannot complete the tasks time history series.')
-        console.log(e)
-      }
-    } else if (minutesHasPast(lastSync, settingsStore.get('refreshTimeInterval'))) {
-      const daysToFetch = calculateDaysToFetch(lastSync)
-      const fetchedTimeSeries = await getCompletedTasksHistory({
-        authKey: settingsStore.get('apiKey'),
-        settingsStore
-      }, { days: daysToFetch })
-      console.log('timeseries before', fetchedTimeSeries)
-
-      const newTimeSerie = mergeTimeSeries(tasksTimeSeriesStore.get('data'), fetchedTimeSeries)
-      tasksTimeSeriesStore.set('data', newTimeSerie)
-      tasksTimeSeriesStore.set('lastSync', new Date().getTime())
-      timeSeries = newTimeSerie
-    } else {
-      timeSeries = tasksTimeSeriesStore.get('data')
+      const timeSeries = await fetchEverything()
+      return { tasksList, timeSeries }
     }
 
-    console.log('timeseries after', timeSeries)
-    return { tasksList, timeSeries }
+    if (timeHasPast(lastSync, settingsStore.get('refreshTimeInterval'))) {
+      const timeSeries = await fetchDelta(lastSync)
+      return { tasksList, timeSeries }
+    }
+
+    return { tasksList, timeSeries: tasksTimeSeriesStore.get('data') }
   }
-}
-
-function minutesHasPast (startTimestamp, minutesPast) {
-  return (Date.now() - startTimestamp) > minutesPast
-}
-
-function calculateDaysToFetch (lastSyncTimestamp) {
-  const oneDay = 1000 * 60 * 60 * 24
-  const current = Date.now()
-  const delta = current - lastSyncTimestamp
-
-  if (delta <= oneDay) {
-    return 1
-  }
-  return Math.ceil(delta / oneDay)
 }
