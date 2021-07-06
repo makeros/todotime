@@ -10,6 +10,23 @@
     <script src="../assets/uikit-icons.min.js"></script>
   </head>
   <body>
+    <style>
+      #loader {
+        position: absolute;
+        width: 128px;
+        height: 128px;
+        top: 50%;
+        left: 50%;
+        transform: translateY(-50%) translateX(-50%);
+        animation: beat 1s infinite alternate;
+      }
+      @keyframes beat{
+        to { transform: scale(1.1) translateY(-45%) translateX(-45%); }
+      }
+    </style>
+    <div id="loader">
+      <img src="../assets/todotime_app_icon_128.png" />
+    </div>
     <div id="elm"></div>
     <script src="./tasks.js"></script>
     <script src="./tasks-main.js"></script>
